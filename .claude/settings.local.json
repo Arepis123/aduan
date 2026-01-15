@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer create-project:*)",
+      "Bash(powershell -Command \"cd ''C:\\\\xampp\\\\htdocs''; composer create-project laravel/laravel aduan-temp --prefer-dist\")",
+      "Bash(powershell:*)",
+      "Bash(npm install)",
+      "Bash(C:xamppmysqlbinmysql.exe -u root -e \"CREATE DATABASE IF NOT EXISTS aduan CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")"
+    ]
+  }
+}
