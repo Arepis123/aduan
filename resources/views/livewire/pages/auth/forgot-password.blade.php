@@ -37,25 +37,34 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
-    </div>
+    <flux:heading size="lg" class="mb-4">Forgot Password</flux:heading>
+
+    <flux:text class="mb-6">
+        Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.
+    </flux:text>
 
     <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    @if (session('status'))
+        <flux:callout variant="success" class="mb-4">
+            {{ session('status') }}
+        </flux:callout>
+    @endif
 
-    <form wire:submit="sendPasswordResetLink">
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+    <form wire:submit="sendPasswordResetLink" class="space-y-6">
+        <flux:field>
+            <flux:label badge="Required">Email</flux:label>
+            <flux:input wire:model="email" type="email" placeholder="Enter your email" autofocus />
+            <flux:error name="email" />
+        </flux:field>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Email Password Reset Link') }}
-            </x-primary-button>
+        <div class="flex items-center justify-between">
+            <flux:link href="{{ route('login') }}" wire:navigate class="text-sm">
+                &larr; Back to login
+            </flux:link>
+
+            <flux:button type="submit" variant="primary" icon="envelope">
+                Send Reset Link
+            </flux:button>
         </div>
     </form>
 </div>

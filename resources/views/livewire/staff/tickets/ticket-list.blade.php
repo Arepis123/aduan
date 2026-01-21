@@ -1,172 +1,144 @@
-<div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-semibold text-gray-900">Tickets</h1>
-        </div>
+<div class="space-y-6">
+    <flux:heading size="xl">Tickets</flux:heading>
 
-        <!-- Filters -->
-        <div class="bg-white rounded-lg shadow p-4 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
-                <div class="md:col-span-2">
-                    <flux:input
-                        wire:model.live.debounce.300ms="search"
-                        placeholder="Search tickets..."
-                        icon="magnifying-glass"
-                    />
-                </div>
-                <div>
-                    <flux:select wire:model.live="status">
-                        <flux:select.option value="">All Status</flux:select.option>
-                        <flux:select.option value="open">Open</flux:select.option>
-                        <flux:select.option value="in_progress">In Progress</flux:select.option>
-                        <flux:select.option value="pending">Pending</flux:select.option>
-                        <flux:select.option value="resolved">Resolved</flux:select.option>
-                        <flux:select.option value="closed">Closed</flux:select.option>
-                    </flux:select>
-                </div>
-                <div>
-                    <flux:select wire:model.live="priority">
-                        <flux:select.option value="">All Priority</flux:select.option>
-                        <flux:select.option value="low">Low</flux:select.option>
-                        <flux:select.option value="medium">Medium</flux:select.option>
-                        <flux:select.option value="high">High</flux:select.option>
-                        <flux:select.option value="urgent">Urgent</flux:select.option>
-                    </flux:select>
-                </div>
-                @if($isAdmin)
-                    <div>
-                        <flux:select wire:model.live="department_id">
-                            <flux:select.option value="">All Departments</flux:select.option>
-                            @foreach($departments as $dept)
-                                <flux:select.option value="{{ $dept->id }}">{{ $dept->name }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                @endif
-                <div>
-                    <flux:select wire:model.live="assigned_to">
-                        <flux:select.option value="">All Agents</flux:select.option>
-                        <flux:select.option value="0">Unassigned</flux:select.option>
-                        @foreach($agents as $agent)
-                            <flux:select.option value="{{ $agent->id }}">{{ $agent->name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                </div>
+    <!-- Filters -->
+    <flux:card class="!p-4">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div class="md:col-span-2">
+                <flux:input
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search tickets..."
+                    icon="magnifying-glass"
+                />
             </div>
-            @if($search || $status || $priority || $department_id || $assigned_to)
-                <div class="mt-3">
-                    <button wire:click="clearFilters" class="text-sm text-indigo-600 hover:text-indigo-800">
-                        Clear all filters
-                    </button>
-                </div>
+            <flux:select wire:model.live="status" placeholder="All Status">
+                <flux:select.option value="">All Status</flux:select.option>
+                <flux:select.option value="open">Open</flux:select.option>
+                <flux:select.option value="in_progress">In Progress</flux:select.option>
+                <flux:select.option value="pending">Pending</flux:select.option>
+                <flux:select.option value="resolved">Resolved</flux:select.option>
+                <flux:select.option value="closed">Closed</flux:select.option>
+            </flux:select>
+            <flux:select wire:model.live="priority" placeholder="All Priority">
+                <flux:select.option value="">All Priority</flux:select.option>
+                <flux:select.option value="low">Low</flux:select.option>
+                <flux:select.option value="medium">Medium</flux:select.option>
+                <flux:select.option value="high">High</flux:select.option>
+                <flux:select.option value="urgent">Urgent</flux:select.option>
+            </flux:select>
+            @if($isAdmin)
+                <flux:select wire:model.live="department_id" placeholder="All Departments">
+                    <flux:select.option value="">All Departments</flux:select.option>
+                    @foreach($departments as $dept)
+                        <flux:select.option value="{{ $dept->id }}">{{ $dept->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
             @endif
+            <flux:select wire:model.live="assigned_to" placeholder="All Agents">
+                <flux:select.option value="">All Agents</flux:select.option>
+                <flux:select.option value="0">Unassigned</flux:select.option>
+                @foreach($agents as $agent)
+                    <flux:select.option value="{{ $agent->id }}">{{ $agent->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
         </div>
-
-        <!-- Tickets Table -->
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th wire:click="sortBy('ticket_number')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100">
-                                <div class="flex items-center gap-1">
-                                    Ticket #
-                                    @if($sortBy === 'ticket_number')
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $sortDirection === 'asc' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7' }}" />
-                                        </svg>
-                                    @endif
-                                </div>
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Requester</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th wire:click="sortBy('priority')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100">
-                                <div class="flex items-center gap-1">
-                                    Priority
-                                    @if($sortBy === 'priority')
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $sortDirection === 'asc' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7' }}" />
-                                        </svg>
-                                    @endif
-                                </div>
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned</th>
-                            <th wire:click="sortBy('created_at')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100">
-                                <div class="flex items-center gap-1">
-                                    Created
-                                    @if($sortBy === 'created_at')
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $sortDirection === 'asc' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7' }}" />
-                                        </svg>
-                                    @endif
-                                </div>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($tickets as $ticket)
-                            <tr class="hover:bg-gray-50 cursor-pointer" wire:click="$navigate('{{ route('staff.tickets.show', $ticket) }}')">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
-                                    {{ $ticket->ticket_number }}
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                                    {{ $ticket->subject }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $ticket->requester_name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $ticket->requester_email }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $ticket->department?->name ?? '-' }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span @class([
-                                        'px-2 py-1 text-xs font-medium rounded-full',
-                                        'bg-blue-100 text-blue-800' => $ticket->status === 'open',
-                                        'bg-yellow-100 text-yellow-800' => $ticket->status === 'in_progress',
-                                        'bg-orange-100 text-orange-800' => $ticket->status === 'pending',
-                                        'bg-green-100 text-green-800' => $ticket->status === 'resolved',
-                                        'bg-gray-100 text-gray-800' => $ticket->status === 'closed',
-                                    ])>
-                                        {{ str_replace('_', ' ', ucfirst($ticket->status)) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span @class([
-                                        'px-2 py-1 text-xs font-medium rounded-full',
-                                        'bg-green-100 text-green-800' => $ticket->priority === 'low',
-                                        'bg-yellow-100 text-yellow-800' => $ticket->priority === 'medium',
-                                        'bg-orange-100 text-orange-800' => $ticket->priority === 'high',
-                                        'bg-red-100 text-red-800' => $ticket->priority === 'urgent',
-                                    ])>
-                                        {{ ucfirst($ticket->priority) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $ticket->assignedAgent?->name ?? 'Unassigned' }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $ticket->created_at->format('M d, Y') }}
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="px-6 py-12 text-center text-gray-500">
-                                    No tickets found.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        @if($search || $status || $priority || $department_id || $assigned_to)
+            <div class="mt-3">
+                <flux:button wire:click="clearFilters" variant="ghost" size="sm">
+                    Clear all filters
+                </flux:button>
             </div>
+        @endif
+    </flux:card>
 
-            @if($tickets->hasPages())
-                <div class="px-6 py-4 border-t border-gray-200">
-                    {{ $tickets->links() }}
-                </div>
-            @endif
-        </div>
-    </div>
+    <!-- Tickets Table -->
+    <flux:card class="p-4 sm:p-6 dark:bg-zinc-900 rounded-lg">
+        <flux:table>
+            <flux:table.columns>
+                <flux:table.column sortable :sorted="$sortBy === 'ticket_number'" :direction="$sortDirection" wire:click="sortBy('ticket_number')">
+                    Ticket #
+                </flux:table.column>
+                <flux:table.column>Subject</flux:table.column>
+                <flux:table.column>Requester</flux:table.column>
+                <flux:table.column>Department</flux:table.column>
+                <flux:table.column>Status</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'priority'" :direction="$sortDirection" wire:click="sortBy('priority')">
+                    Priority
+                </flux:table.column>
+                <flux:table.column>Assigned</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sortBy('created_at')">
+                    Created
+                </flux:table.column>
+            </flux:table.columns>
+
+            <flux:table.rows>
+                @forelse($tickets as $ticket)
+                    <flux:table.row class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700/50" x-on:click="Livewire.navigate('{{ route('staff.tickets.show', $ticket) }}')">
+                        <flux:table.cell class="font-medium text-indigo-600 dark:text-indigo-400">
+                            {{ $ticket->ticket_number }}
+                        </flux:table.cell>
+                        <flux:table.cell class="max-w-xs truncate">
+                            {{ $ticket->subject }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div>
+                                <flux:text size="sm" class="font-medium">{{ $ticket->requester_name }}</flux:text>
+                                <flux:text size="xs">{{ $ticket->requester_email }}</flux:text>
+                            </div>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            {{ $ticket->department?->name ?? '-' }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge
+                                size="sm"
+                                :color="match($ticket->status) {
+                                    'open' => 'blue',
+                                    'in_progress' => 'yellow',
+                                    'pending' => 'orange',
+                                    'resolved' => 'green',
+                                    'closed' => 'zinc',
+                                    default => 'zinc'
+                                }"
+                            >
+                                {{ str_replace('_', ' ', ucfirst($ticket->status)) }}
+                            </flux:badge>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge
+                                size="sm"
+                                :color="match($ticket->priority) {
+                                    'low' => 'green',
+                                    'medium' => 'yellow',
+                                    'high' => 'orange',
+                                    'urgent' => 'red',
+                                    default => 'zinc'
+                                }"
+                            >
+                                {{ ucfirst($ticket->priority) }}
+                            </flux:badge>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            {{ $ticket->assignedAgent?->name ?? 'Unassigned' }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            {{ $ticket->created_at->format('M d, Y') }}
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="8" class="text-center py-8">
+                            <flux:text>No tickets found.</flux:text>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+
+        @if($tickets->hasPages())
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                {{ $tickets->links() }}
+            </div>
+        @endif
+    </flux:card>
 </div>

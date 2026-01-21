@@ -63,53 +63,45 @@ new class extends Component
 }; ?>
 
 <section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
-        </h2>
+    <flux:heading size="lg" class="mb-2">Profile Information</flux:heading>
+    <flux:subheading class="mb-6">Update your account's profile information and email address.</flux:subheading>
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
+    <form wire:submit="updateProfileInformation" class="space-y-6">
+        <flux:field>
+            <flux:label badge="Required">Name</flux:label>
+            <flux:input wire:model="name" placeholder="Enter your name" autofocus autocomplete="name" />
+            <flux:error name="name" />
+        </flux:field>
 
-    <form wire:submit="updateProfileInformation" class="mt-6 space-y-6">
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input wire:model="name" id="name" name="name" type="text" class="mt-1 block w-full" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
-        </div>
-
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" name="email" type="email" class="mt-1 block w-full" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+        <flux:field>
+            <flux:label badge="Required">Email</flux:label>
+            <flux:input wire:model="email" type="email" placeholder="Enter your email" autocomplete="username" />
+            <flux:error name="email" />
 
             @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
-
-                        <button wire:click.prevent="sendVerification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
+                <div class="mt-2">
+                    <flux:text size="sm" class="text-amber-600 dark:text-amber-400">
+                        Your email address is unverified.
+                        <flux:link wire:click.prevent="sendVerification" class="cursor-pointer">
+                            Click here to re-send the verification email.
+                        </flux:link>
+                    </flux:text>
 
                     @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
+                        <flux:text size="sm" class="mt-2 text-green-600 dark:text-green-400">
+                            A new verification link has been sent to your email address.
+                        </flux:text>
                     @endif
                 </div>
             @endif
-        </div>
+        </flux:field>
 
         <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+            <flux:button type="submit" variant="primary">Save</flux:button>
 
-            <x-action-message class="me-3" on="profile-updated">
-                {{ __('Saved.') }}
-            </x-action-message>
+            <flux:text x-data="{ shown: false }" x-init="@this.on('profile-updated', () => { shown = true; setTimeout(() => shown = false, 2000); })" x-show="shown" x-transition class="text-green-600 dark:text-green-400">
+                Saved.
+            </flux:text>
         </div>
     </form>
 </section>

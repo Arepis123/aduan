@@ -9,6 +9,8 @@ use App\Livewire\Staff\Tickets\TicketDetail;
 use App\Livewire\Staff\Tickets\TicketList;
 use App\Livewire\Admin\CategoryManagement;
 use App\Livewire\Admin\DepartmentManagement;
+use App\Livewire\Admin\SectorManagement;
+use App\Livewire\Admin\UnitManagement;
 use App\Livewire\Admin\UserManagement;
 use Illuminate\Support\Facades\Route;
 
@@ -27,7 +29,9 @@ Route::middleware(['auth'])->prefix('staff')->name('staff.')->group(function () 
     // Admin only routes
     Route::middleware(['can:users.view'])->group(function () {
         Route::get('/users', UserManagement::class)->name('users.index');
+        Route::get('/sectors', SectorManagement::class)->name('sectors.index');
         Route::get('/departments', DepartmentManagement::class)->name('departments.index');
+        Route::get('/units', UnitManagement::class)->name('units.index');
         Route::get('/categories', CategoryManagement::class)->name('categories.index');
     });
 });

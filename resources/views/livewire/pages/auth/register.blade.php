@@ -37,52 +37,41 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
-    <form wire:submit="register">
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input wire:model="name" id="name" class="block mt-1 w-full" type="text" name="name" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
-        </div>
+    <flux:heading size="lg" class="mb-6">Register</flux:heading>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+    <form wire:submit="register" class="space-y-6">
+        <flux:field>
+            <flux:label badge="Required">Name</flux:label>
+            <flux:input wire:model="name" placeholder="Enter your name" autofocus autocomplete="name" />
+            <flux:error name="name" />
+        </flux:field>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+        <flux:field>
+            <flux:label badge="Required">Email</flux:label>
+            <flux:input wire:model="email" type="email" placeholder="Enter your email" autocomplete="username" />
+            <flux:error name="email" />
+        </flux:field>
 
-            <x-text-input wire:model="password" id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
+        <flux:field>
+            <flux:label badge="Required">Password</flux:label>
+            <flux:input wire:model="password" type="password" placeholder="Enter your password" autocomplete="new-password" />
+            <flux:error name="password" />
+        </flux:field>
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+        <flux:field>
+            <flux:label badge="Required">Confirm Password</flux:label>
+            <flux:input wire:model="password_confirmation" type="password" placeholder="Confirm your password" autocomplete="new-password" />
+            <flux:error name="password_confirmation" />
+        </flux:field>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+        <div class="flex items-center justify-between">
+            <flux:link href="{{ route('login') }}" wire:navigate class="text-sm">
+                Already registered?
+            </flux:link>
 
-            <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}" wire:navigate>
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
+            <flux:button type="submit" variant="primary" icon="user-plus">
+                Register
+            </flux:button>
         </div>
     </form>
 </div>

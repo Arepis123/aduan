@@ -2,9 +2,10 @@
 
 namespace App\Livewire\Staff\Tickets;
 
+use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\TicketReply;
-use App\Models\User;
+use App\Models\Unit;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
@@ -20,21 +21,23 @@ class TicketDetail extends Component
 
     public bool $isInternalNote = false;
 
-    public ?int $assignTo = null;
+    public ?int $assignDepartment = null;
+    public ?int $assignUnit = null;
     public string $newStatus = '';
     public string $newPriority = '';
 
     public function mount(Ticket $ticket): void
     {
-        $this->ticket = $ticket->load(['department', 'category', 'assignedAgent', 'replies.user', 'attachments']);
-        $this->assignTo = $ticket->user_id;
+        $this->ticket = $ticket->load(['department', 'unit', 'category', 'replies.user', 'attachments']);
+        $this->assignDepartment = $ticket->department_id;
+        $this->assignUnit = $ticket->unit_id;
         $this->newStatus = $ticket->status;
         $this->newPriority = $ticket->priority;
     }
 
     public function getTitle(): string
     {
-        return $this->ticket->ticket_number . ' - Sistem Aduan';
+        return $this->ticket->ticket_number . ' - Sistem Aduan CLAB';
     }
 
     public function submitReply(): void
@@ -57,8 +60,18 @@ class TicketDetail extends Component
 
     public function updateAssignment(): void
     {
-        $this->ticket->update(['user_id' => $this->assignTo ?: null]);
+        $this->ticket->update([
+            'department_id' => $this->assignDepartment ?: null,
+            'unit_id' => $this->assignUnit ?: null,
+        ]);
         $this->ticket->refresh();
+        $this->ticket->load(['department', 'unit']);
+    }
+
+    public function updatedAssignDepartment($value): void
+    {
+        // Reset unit when department changes
+        $this->assignUnit = null;
     }
 
     public function updateStatus(): void
@@ -81,16 +94,16 @@ class TicketDetail extends Component
         $this->ticket->refresh();
     }
 
-    public function assignToMe(): void
-    {
-        $this->assignTo = Auth::id();
-        $this->updateAssignment();
-    }
-
     public function render()
     {
+        $departments = Department::active()->orderBy('name')->get();
+        $units = $this->assignDepartment
+            ? Unit::where('department_id', $this->assignDepartment)->active()->orderBy('name')->get()
+            : collect();
+
         return view('livewire.staff.tickets.ticket-detail', [
-            'agents' => User::whereIn('role', ['admin', 'agent'])->get(),
+            'departments' => $departments,
+            'units' => $units,
         ]);
     }
 }

@@ -1,153 +1,237 @@
-<div class="max-w-4xl mx-auto">
+<div class="max-w-4xl mx-auto space-y-6">
     <!-- Ticket Header -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+    <flux:card>
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
-                <p class="text-sm text-gray-500 mb-1">Ticket Number</p>
-                <h1 class="text-2xl font-bold text-gray-900">{{ $ticket->ticket_number }}</h1>
+                <flux:text size="sm" class="mb-1">Ticket Number</flux:text>
+                <flux:heading size="xl">{{ $ticket->ticket_number }}</flux:heading>
             </div>
             <div class="flex items-center gap-3">
                 <!-- Priority Badge -->
-                <span @class([
-                    'px-3 py-1 rounded-full text-sm font-medium',
-                    'bg-green-100 text-green-800' => $ticket->priority === 'low',
-                    'bg-yellow-100 text-yellow-800' => $ticket->priority === 'medium',
-                    'bg-orange-100 text-orange-800' => $ticket->priority === 'high',
-                    'bg-red-100 text-red-800' => $ticket->priority === 'urgent',
-                ])>
+                <flux:badge
+                    :color="match($ticket->priority) {
+                        'low' => 'green',
+                        'medium' => 'yellow',
+                        'high' => 'orange',
+                        'urgent' => 'red',
+                        default => 'zinc'
+                    }"
+                >
                     {{ ucfirst($ticket->priority) }} Priority
-                </span>
+                </flux:badge>
                 <!-- Status Badge -->
-                <span @class([
-                    'px-3 py-1 rounded-full text-sm font-medium',
-                    'bg-blue-100 text-blue-800' => $ticket->status === 'open',
-                    'bg-yellow-100 text-yellow-800' => $ticket->status === 'in_progress',
-                    'bg-orange-100 text-orange-800' => $ticket->status === 'pending',
-                    'bg-green-100 text-green-800' => $ticket->status === 'resolved',
-                    'bg-gray-100 text-gray-800' => $ticket->status === 'closed',
-                ])>
+                <flux:badge
+                    :color="match($ticket->status) {
+                        'open' => 'blue',
+                        'in_progress' => 'yellow',
+                        'pending' => 'orange',
+                        'resolved' => 'green',
+                        'closed' => 'zinc',
+                        default => 'zinc'
+                    }"
+                >
                     {{ str_replace('_', ' ', ucfirst($ticket->status)) }}
-                </span>
+                </flux:badge>
             </div>
         </div>
 
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">{{ $ticket->subject }}</h2>
+        <flux:heading size="lg" class="mb-4">{{ $ticket->subject }}</flux:heading>
 
-        <div class="grid md:grid-cols-2 gap-4 text-sm">
-            <div>
-                <span class="text-gray-500">Department:</span>
-                <span class="text-gray-900 ml-2">{{ $ticket->department?->name ?? 'N/A' }}</span>
+        <div class="grid md:grid-cols-2 gap-4">
+            <div class="flex gap-2">
+                <flux:text size="sm">Department:</flux:text>
+                <flux:text size="sm" class="font-medium">{{ $ticket->department?->name ?? 'N/A' }}</flux:text>
             </div>
-            <div>
-                <span class="text-gray-500">Category:</span>
-                <span class="text-gray-900 ml-2">{{ $ticket->category?->name ?? 'N/A' }}</span>
+            <div class="flex gap-2">
+                <flux:text size="sm">Category:</flux:text>
+                <flux:text size="sm" class="font-medium">{{ $ticket->category?->name ?? 'N/A' }}</flux:text>
             </div>
-            <div>
-                <span class="text-gray-500">Submitted:</span>
-                <span class="text-gray-900 ml-2">{{ $ticket->created_at->format('M d, Y h:i A') }}</span>
+            <div class="flex gap-2">
+                <flux:text size="sm">Submitted:</flux:text>
+                <flux:text size="sm" class="font-medium">{{ $ticket->created_at->format('M d, Y h:i A') }}</flux:text>
             </div>
-            <div>
-                <span class="text-gray-500">Assigned To:</span>
-                <span class="text-gray-900 ml-2">{{ $ticket->assignedAgent?->name ?? 'Unassigned' }}</span>
+            <div class="flex gap-2">
+                <flux:text size="sm">Assigned To:</flux:text>
+                <flux:text size="sm" class="font-medium">{{ $ticket->assignedAgent?->name ?? 'Unassigned' }}</flux:text>
             </div>
         </div>
-    </div>
+    </flux:card>
 
     <!-- Original Description -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Description</h3>
-        <div class="prose prose-sm max-w-none text-gray-700">
+    <flux:card>
+        <flux:heading size="lg" class="mb-4">Description</flux:heading>
+        <div class="prose prose-sm dark:prose-invert max-w-none">
             {!! nl2br(e($ticket->description)) !!}
         </div>
 
         @if($ticket->attachments->where('ticket_reply_id', null)->count() > 0)
-            <div class="mt-6 pt-4 border-t border-gray-200">
-                <h4 class="text-sm font-medium text-gray-900 mb-3">Attachments</h4>
-                <div class="flex flex-wrap gap-2">
-                    @foreach($ticket->attachments->where('ticket_reply_id', null) as $attachment)
-                        <a href="{{ $attachment->url }}" target="_blank"
-                           class="inline-flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg text-sm text-gray-700 hover:bg-gray-100">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                            </svg>
-                            {{ $attachment->original_filename }}
-                        </a>
-                    @endforeach
-                </div>
+            <flux:separator class="my-6" />
+            <flux:heading size="sm" class="mb-3">Attachments</flux:heading>
+            <div class="flex flex-wrap gap-2">
+                @foreach($ticket->attachments->where('ticket_reply_id', null) as $attachment)
+                    <flux:button
+                        href="{{ $attachment->url }}"
+                        target="_blank"
+                        variant="ghost"
+                        size="sm"
+                        icon="paper-clip"
+                    >
+                        {{ $attachment->original_filename }}
+                    </flux:button>
+                @endforeach
             </div>
         @endif
-    </div>
+    </flux:card>
 
     <!-- Conversation -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Conversation</h3>
+    <flux:card>
+        <flux:heading size="lg" class="mb-4">Conversation</flux:heading>
 
         @if($ticket->publicReplies->count() > 0)
             <div class="space-y-4">
                 @foreach($ticket->publicReplies as $reply)
                     <div @class([
                         'p-4 rounded-lg',
-                        'bg-indigo-50 border border-indigo-100' => !$reply->is_client_reply,
-                        'bg-gray-50 border border-gray-200' => $reply->is_client_reply,
+                        'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800' => !$reply->is_client_reply,
+                        'bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700' => $reply->is_client_reply,
                     ])>
                         <div class="flex items-center justify-between mb-2">
-                            <span @class([
-                                'font-medium',
-                                'text-indigo-900' => !$reply->is_client_reply,
-                                'text-gray-900' => $reply->is_client_reply,
-                            ])>
-                                {{ $reply->author_name }}
+                            <div class="flex items-center gap-2">
+                                <flux:text class="font-medium">{{ $reply->author_name }}</flux:text>
                                 @if(!$reply->is_client_reply)
-                                    <span class="text-xs text-indigo-600 ml-1">(Staff)</span>
+                                    <flux:badge size="sm" color="indigo">Staff</flux:badge>
                                 @endif
-                            </span>
-                            <span class="text-xs text-gray-500">{{ $reply->created_at->format('M d, Y h:i A') }}</span>
+                            </div>
+                            <flux:text size="xs">{{ $reply->created_at->format('M d, Y h:i A') }}</flux:text>
                         </div>
-                        <div class="text-gray-700">
+                        <div class="text-zinc-700 dark:text-zinc-300">
                             {!! nl2br(e($reply->message)) !!}
                         </div>
                     </div>
                 @endforeach
             </div>
         @else
-            <p class="text-gray-500 text-center py-4">No replies yet. Our team will respond shortly.</p>
+            <flux:text class="text-center py-4">No replies yet. Our team will respond shortly.</flux:text>
         @endif
 
         <!-- Reply Form -->
         @if($ticket->isOpen() || $showReplyForm)
-            <div class="mt-6 pt-4 border-t border-gray-200">
-                <form wire:submit="submitReply" class="space-y-4">
+            <flux:separator class="my-6" />
+
+            <!-- Form-level errors -->
+            @error('form')
+                <flux:callout variant="danger" icon="exclamation-triangle" class="mb-4">
+                    <flux:callout.heading>Error</flux:callout.heading>
+                    <flux:callout.text>{{ $message }}</flux:callout.text>
+                </flux:callout>
+            @enderror
+
+            <div class="space-y-4">
+                <!-- Honeypot fields (hidden from real users) -->
+                <div class="hidden" aria-hidden="true">
+                    <input type="text" name="website" wire:model="website" tabindex="-1" autocomplete="off">
+                    <input type="hidden" name="honeypot_time" wire:model="honeypot_time">
+                </div>
+
+                <flux:field>
+                    <flux:label>Add a Reply</flux:label>
                     <flux:textarea
                         wire:model="reply"
-                        label="Add a Reply"
-                        placeholder="Type your message here (minimum 10 characters)"
+                        placeholder="Type your message here"
                         rows="4"
                     />
-                    <div class="flex justify-end">
-                        <flux:button type="submit" variant="primary">
-                            <span wire:loading.remove wire:target="submitReply">Send Reply</span>
-                            <span wire:loading wire:target="submitReply">Sending...</span>
-                        </flux:button>
-                    </div>
-                </form>
+                    <flux:description>Minimum 10 characters</flux:description>
+                    <flux:error name="reply" />
+                </flux:field>
+
+                <div class="flex justify-end">
+                    <flux:button
+                        type="button"
+                        variant="primary"
+                        icon="paper-airplane"
+                        wire:click="validateReply"
+                        wire:loading.attr="disabled"
+                        wire:target="validateReply"
+                    >
+                        <span wire:loading.remove wire:target="validateReply">Send Reply</span>
+                        <span wire:loading wire:target="validateReply">Validating...</span>
+                    </flux:button>
+                </div>
             </div>
         @else
-            <div class="mt-6 pt-4 border-t border-gray-200 text-center">
-                <p class="text-gray-600 mb-4">This ticket has been {{ $ticket->status }}.</p>
-                <button
+            <flux:separator class="my-6" />
+            <div class="text-center">
+                <flux:text class="mb-4">This ticket has been {{ $ticket->status }}.</flux:text>
+                <flux:button
                     wire:click="$set('showReplyForm', true)"
-                    class="text-indigo-600 hover:text-indigo-800 font-medium"
+                    variant="ghost"
                 >
                     Need to add more information? Click here to reopen
-                </button>
+                </flux:button>
             </div>
         @endif
-    </div>
+    </flux:card>
 
     <!-- Back Link -->
     <div class="text-center">
-        <a href="{{ route('check') }}" wire:navigate class="text-gray-600 hover:text-gray-900">
-            &larr; Check another ticket
-        </a>
+        <flux:button href="{{ route('check') }}" variant="ghost" icon="arrow-left" wire:navigate>
+            Check another ticket
+        </flux:button>
     </div>
+
+    <!-- Security Verification Modal for Reply -->
+    <flux:modal name="reply-captcha-modal" class="max-w-md">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Security Verification</flux:heading>
+                <flux:subheading>Please solve this simple math problem to verify you're human.</flux:subheading>
+            </div>
+
+            <div class="flex items-center justify-center py-4">
+                <div class="text-center">
+                    <flux:text class="text-lg mb-2">What is</flux:text>
+                    <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">{{ $captchaQuestion }}</p>
+                </div>
+            </div>
+
+            <flux:field>
+                <flux:label>Your Answer</flux:label>
+                <flux:input
+                    wire:model="captchaAnswer"
+                    type="number"
+                    placeholder="Enter the answer"
+                    autofocus
+                />
+                <flux:error name="captchaAnswer" />
+            </flux:field>
+
+            <div class="flex justify-between items-center">
+                <flux:button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    icon="arrow-path"
+                    wire:click="refreshCaptcha"
+                >
+                    Different Question
+                </flux:button>
+
+                <div class="flex gap-2">
+                    <flux:modal.close>
+                        <flux:button variant="ghost">Cancel</flux:button>
+                    </flux:modal.close>
+                    <flux:button
+                        variant="primary"
+                        icon="paper-airplane"
+                        wire:click="submitReply"
+                        wire:loading.attr="disabled"
+                        wire:target="submitReply"
+                    >
+                        <span wire:loading.remove wire:target="submitReply">Send</span>
+                        <span wire:loading wire:target="submitReply">Sending...</span>
+                    </flux:button>
+                </div>
+            </div>
+        </div>
+    </flux:modal>
 </div>

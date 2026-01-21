@@ -1,106 +1,94 @@
-<div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-semibold text-gray-900">Category Management</h1>
-            <flux:button wire:click="openModal" variant="primary">
-                Add Category
-            </flux:button>
-        </div>
-
-        <!-- Categories Table -->
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tickets</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($categories as $category)
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $category->name }}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                                {{ $category->description ?? '-' }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $category->department?->name ?? '-' }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $category->tickets_count }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span @class([
-                                    'px-2 py-1 text-xs font-medium rounded-full',
-                                    'bg-green-100 text-green-800' => $category->is_active,
-                                    'bg-gray-100 text-gray-800' => !$category->is_active,
-                                ])>
-                                    {{ $category->is_active ? 'Active' : 'Inactive' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <button wire:click="openModal({{ $category->id }})" class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                    Edit
-                                </button>
-                                <button wire:click="delete({{ $category->id }})" wire:confirm="Are you sure you want to delete this category?" class="text-red-600 hover:text-red-900">
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
-                                No categories found. Click "Add Category" to create one.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <flux:heading size="xl">Category Management</flux:heading>
+        <flux:button wire:click="openModal" variant="primary" icon="plus">
+            Add Category
+        </flux:button>
     </div>
+
+    <!-- Categories Table -->
+    <flux:card class="p-4 sm:p-6 dark:bg-zinc-900 rounded-lg">
+        <flux:table>
+            <flux:table.columns>
+                <flux:table.column>Name</flux:table.column>
+                <flux:table.column>Description</flux:table.column>
+                <flux:table.column>Department</flux:table.column>
+                <flux:table.column>Tickets</flux:table.column>
+                <flux:table.column>Status</flux:table.column>
+                <flux:table.column>Actions</flux:table.column>
+            </flux:table.columns>
+
+            <flux:table.rows>
+                @forelse($categories as $category)
+                    <flux:table.row>
+                        <flux:table.cell class="font-medium">
+                            {{ $category->name }}
+                        </flux:table.cell>
+                        <flux:table.cell class="max-w-xs truncate">
+                            {{ $category->description ?? '-' }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            {{ $category->department?->name ?? '-' }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            {{ $category->tickets_count }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge
+                                size="sm"
+                                :color="$category->is_active ? 'green' : 'zinc'"
+                            >
+                                {{ $category->is_active ? 'Active' : 'Inactive' }}
+                            </flux:badge>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="flex gap-2">
+                                <flux:button wire:click="openModal({{ $category->id }})" variant="ghost" size="sm" icon="pencil" />
+                                <flux:button wire:click="delete({{ $category->id }})" wire:confirm="Are you sure you want to delete this category?" variant="ghost" size="sm" icon="trash" class="text-red-600 hover:text-red-800" />
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="6" class="text-center py-8">
+                            <flux:text>No categories found. Click "Add Category" to create one.</flux:text>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+    </flux:card>
 
     <!-- Modal -->
     <flux:modal wire:model="showModal" class="max-w-lg">
-        <div class="p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">
+        <div class="space-y-6">
+            <flux:heading size="lg">
                 {{ $editingCategory ? 'Edit Category' : 'Add New Category' }}
-            </h2>
+            </flux:heading>
 
             <form wire:submit="save" class="space-y-4">
-                <flux:input
-                    wire:model="name"
-                    label="Name"
-                    placeholder="Enter category name"
-                    required
-                />
+                <flux:field>
+                    <flux:label badge="Required">Name</flux:label>
+                    <flux:input wire:model="name" placeholder="Enter category name" />
+                    <flux:error name="name" />
+                </flux:field>
 
-                <flux:textarea
-                    wire:model="description"
-                    label="Description"
-                    placeholder="Enter category description"
-                    rows="3"
-                />
+                <flux:field>
+                    <flux:label>Description</flux:label>
+                    <flux:textarea wire:model="description" placeholder="Enter category description" rows="3" />
+                </flux:field>
 
-                <flux:select
-                    wire:model="department_id"
-                    label="Department"
-                >
-                    <flux:select.option value="">No Department</flux:select.option>
-                    @foreach($departments as $dept)
-                        <flux:select.option value="{{ $dept->id }}">{{ $dept->name }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                <flux:field>
+                    <flux:label>Department</flux:label>
+                    <flux:select wire:model="department_id">
+                        <flux:select.option value="">No Department</flux:select.option>
+                        @foreach($departments as $dept)
+                            <flux:select.option value="{{ $dept->id }}">{{ $dept->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </flux:field>
 
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" wire:model="is_active" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                    <span class="text-sm text-gray-700">Active</span>
-                </label>
+                <flux:checkbox wire:model="is_active" label="Active" />
 
                 <div class="flex justify-end gap-3 pt-4">
                     <flux:button wire:click="closeModal" type="button" variant="ghost">

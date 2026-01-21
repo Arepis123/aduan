@@ -1,139 +1,128 @@
-<div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-semibold text-gray-900">User Management</h1>
-            <flux:button wire:click="openModal" variant="primary">
-                Add User
-            </flux:button>
-        </div>
-
-        <!-- Search -->
-        <div class="mb-6">
-            <flux:input
-                wire:model.live.debounce.300ms="search"
-                placeholder="Search users..."
-                icon="magnifying-glass"
-                class="max-w-md"
-            />
-        </div>
-
-        <!-- Users Table -->
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($users as $user)
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $user->name }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $user->email }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span @class([
-                                    'px-2 py-1 text-xs font-medium rounded-full',
-                                    'bg-purple-100 text-purple-800' => $user->role === 'admin',
-                                    'bg-blue-100 text-blue-800' => $user->role === 'agent',
-                                ])>
-                                    {{ ucfirst($user->role) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $user->department?->name ?? '-' }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <button wire:click="openModal({{ $user->id }})" class="text-indigo-600 hover:text-indigo-900 mr-3">
-                                    Edit
-                                </button>
-                                @if($user->id !== auth()->id())
-                                    <button wire:click="delete({{ $user->id }})" wire:confirm="Are you sure you want to delete this user?" class="text-red-600 hover:text-red-900">
-                                        Delete
-                                    </button>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                                No users found.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-
-            @if($users->hasPages())
-                <div class="px-6 py-4 border-t border-gray-200">
-                    {{ $users->links() }}
-                </div>
-            @endif
-        </div>
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <flux:heading size="xl">User Management</flux:heading>
+        <flux:button wire:click="openModal" variant="primary" icon="plus">
+            Add User
+        </flux:button>
     </div>
+
+    <!-- Search -->
+    <div class="max-w-md">
+        <flux:input
+            wire:model.live.debounce.300ms="search"
+            placeholder="Search users..."
+            icon="magnifying-glass"
+        />
+    </div>
+
+    <!-- Users Table -->
+    <flux:card class="p-4 sm:p-6 dark:bg-zinc-900 rounded-lg">
+        <flux:table>
+            <flux:table.columns>
+                <flux:table.column>Name</flux:table.column>
+                <flux:table.column>Email</flux:table.column>
+                <flux:table.column>Role</flux:table.column>
+                <flux:table.column>Department</flux:table.column>
+                <flux:table.column>Actions</flux:table.column>
+            </flux:table.columns>
+
+            <flux:table.rows>
+                @forelse($users as $user)
+                    <flux:table.row>
+                        <flux:table.cell class="font-medium">
+                            {{ $user->name }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            {{ $user->email }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge
+                                size="sm"
+                                :color="$user->role === 'admin' ? 'purple' : 'blue'"
+                            >
+                                {{ ucfirst($user->role) }}
+                            </flux:badge>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            {{ $user->department?->name ?? '-' }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="flex gap-2">
+                                <flux:button wire:click="openModal({{ $user->id }})" variant="ghost" size="sm" icon="pencil" />
+                                @if($user->id !== auth()->id())
+                                    <flux:button wire:click="delete({{ $user->id }})" wire:confirm="Are you sure you want to delete this user?" variant="ghost" size="sm" icon="trash" class="text-red-600 hover:text-red-800" />
+                                @endif
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="5" class="text-center py-8">
+                            <flux:text>No users found.</flux:text>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+
+        @if($users->hasPages())
+            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
+                {{ $users->links() }}
+            </div>
+        @endif
+    </flux:card>
 
     <!-- Modal -->
     <flux:modal wire:model="showModal" class="max-w-lg">
-        <div class="p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">
+        <div class="space-y-6">
+            <flux:heading size="lg">
                 {{ $editingUser ? 'Edit User' : 'Add New User' }}
-            </h2>
+            </flux:heading>
 
             <form wire:submit="save" class="space-y-4">
-                <flux:input
-                    wire:model="name"
-                    label="Name"
-                    placeholder="Enter name"
-                    required
-                />
+                <flux:field>
+                    <flux:label badge="Required">Name</flux:label>
+                    <flux:input wire:model="name" placeholder="Enter name" />
+                    <flux:error name="name" />
+                </flux:field>
 
-                <flux:input
-                    wire:model="email"
-                    type="email"
-                    label="Email"
-                    placeholder="Enter email"
-                    required
-                />
+                <flux:field>
+                    <flux:label badge="Required">Email</flux:label>
+                    <flux:input wire:model="email" type="email" placeholder="Enter email" />
+                    <flux:error name="email" />
+                </flux:field>
 
-                <flux:input
-                    wire:model="password"
-                    type="password"
-                    label="{{ $editingUser ? 'Password (leave blank to keep current)' : 'Password' }}"
-                    placeholder="Enter password"
-                    :required="!$editingUser"
-                />
+                <flux:field>
+                    <flux:label :badge="$editingUser ? '' : 'Required'">
+                        {{ $editingUser ? 'Password (leave blank to keep current)' : 'Password' }}
+                    </flux:label>
+                    <flux:input wire:model="password" type="password" placeholder="Enter password" />
+                    <flux:error name="password" />
+                </flux:field>
 
-                <flux:select
-                    wire:model="role"
-                    label="Role"
-                    required
-                >
-                    <flux:select.option value="agent">Agent</flux:select.option>
-                    <flux:select.option value="admin">Admin</flux:select.option>
-                </flux:select>
+                <flux:field>
+                    <flux:label badge="Required">Role</flux:label>
+                    <flux:select wire:model="role">
+                        <flux:select.option value="agent">Agent</flux:select.option>
+                        <flux:select.option value="admin">Admin</flux:select.option>
+                    </flux:select>
+                    <flux:error name="role" />
+                </flux:field>
 
-                <flux:select
-                    wire:model="department_id"
-                    label="Department"
-                >
-                    <flux:select.option value="">No Department</flux:select.option>
-                    @foreach($departments as $dept)
-                        <flux:select.option value="{{ $dept->id }}">{{ $dept->name }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+                <flux:field>
+                    <flux:label>Department</flux:label>
+                    <flux:select wire:model="department_id">
+                        <flux:select.option value="">No Department</flux:select.option>
+                        @foreach($departments as $dept)
+                            <flux:select.option value="{{ $dept->id }}">{{ $dept->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </flux:field>
 
-                <flux:input
-                    wire:model="phone"
-                    label="Phone"
-                    placeholder="Enter phone number"
-                />
+                <flux:field>
+                    <flux:label>Phone</flux:label>
+                    <flux:input wire:model="phone" placeholder="Enter phone number" />
+                </flux:field>
 
                 <div class="flex justify-end gap-3 pt-4">
                     <flux:button wire:click="closeModal" type="button" variant="ghost">

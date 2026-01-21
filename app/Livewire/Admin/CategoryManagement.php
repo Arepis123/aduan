@@ -10,7 +10,7 @@ use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-#[Title('Category Management - Sistem Aduan')]
+#[Title('Category Management - Sistem Aduan CLAB')]
 class CategoryManagement extends Component
 {
     public bool $showModal = false;

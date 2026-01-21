@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Department extends Model
@@ -13,20 +14,32 @@ class Department extends Model
     protected $fillable = [
         'name',
         'description',
-        'email',
+        'emails',
         'is_active',
+        'sector_id',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'emails' => 'array',
         ];
+    }
+
+    public function sector(): BelongsTo
+    {
+        return $this->belongsTo(Sector::class);
     }
 
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function units(): HasMany
+    {
+        return $this->hasMany(Unit::class);
     }
 
     public function categories(): HasMany

@@ -5,7 +5,22 @@
       "Bash(powershell -Command \"cd ''C:\\\\xampp\\\\htdocs''; composer create-project laravel/laravel aduan-temp --prefer-dist\")",
       "Bash(powershell:*)",
       "Bash(npm install)",
-      "Bash(C:xamppmysqlbinmysql.exe -u root -e \"CREATE DATABASE IF NOT EXISTS aduan CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")"
+      "Bash(C:xamppmysqlbinmysql.exe -u root -e \"CREATE DATABASE IF NOT EXISTS aduan CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")",
+      "Bash(npm config list:*)",
+      "Bash(npm cache clean:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(php artisan migrate:*)",
+      "Bash(php artisan db:seed:*)",
+      "WebFetch(domain:fluxui.dev)",
+      "Bash(composer require:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(php artisan optimize:clear:*)",
+      "Bash(php artisan:*)",
+      "Bash(del \"C:\\\\xampp\\\\htdocs\\\\aduan\\\\app\\\\Rules\\\\ReCaptcha.php\" \"C:\\\\xampp\\\\htdocs\\\\aduan\\\\app\\\\Services\\\\ReCaptchaService.php\" \"C:\\\\xampp\\\\htdocs\\\\aduan\\\\config\\\\recaptcha.php\")",
+      "Bash(composer show:*)",
+      "Bash(dir /s /b C:xampphtdocsaduanresourcesviewsflux)",
+      "WebSearch"
     ]
   }
 }

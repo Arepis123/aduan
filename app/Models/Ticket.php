@@ -15,6 +15,7 @@ class Ticket extends Model
         'ticket_number',
         'user_id',
         'department_id',
+        'unit_id',
         'category_id',
         'requester_name',
         'requester_email',
@@ -74,6 +75,11 @@ class Ticket extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class);
     }
 
     public function category(): BelongsTo

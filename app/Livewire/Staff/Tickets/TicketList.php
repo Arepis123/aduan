@@ -13,7 +13,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
-#[Title('Tickets - Sistem Aduan')]
+#[Title('Tickets - Sistem Aduan CLAB')]
 class TicketList extends Component
 {
     use WithPagination;
