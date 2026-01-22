@@ -4,22 +4,16 @@ namespace App\Livewire\Staff\Tickets;
 
 use App\Models\Department;
 use App\Models\Ticket;
-use App\Models\TicketReply;
 use App\Models\Unit;
-use Illuminate\Support\Facades\Auth;
+use App\Notifications\TicketAssigned;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
 class TicketDetail extends Component
 {
     public Ticket $ticket;
-
-    #[Validate('required|string|min:5')]
-    public string $reply = '';
-
-    public bool $isInternalNote = false;
 
     public ?int $assignDepartment = null;
     public ?int $assignUnit = null;
@@ -28,7 +22,7 @@ class TicketDetail extends Component
 
     public function mount(Ticket $ticket): void
     {
-        $this->ticket = $ticket->load(['department', 'unit', 'category', 'replies.user', 'attachments']);
+        $this->ticket = $ticket->load(['department', 'unit', 'category', 'attachments']);
         $this->assignDepartment = $ticket->department_id;
         $this->assignUnit = $ticket->unit_id;
         $this->newStatus = $ticket->status;
@@ -40,32 +34,50 @@ class TicketDetail extends Component
         return $this->ticket->ticket_number . ' - Sistem Aduan CLAB';
     }
 
-    public function submitReply(): void
-    {
-        $this->validate();
-
-        TicketReply::create([
-            'ticket_id' => $this->ticket->id,
-            'user_id' => Auth::id(),
-            'message' => $this->reply,
-            'is_client_reply' => false,
-            'is_internal_note' => $this->isInternalNote,
-        ]);
-
-        $this->reply = '';
-        $this->isInternalNote = false;
-        $this->ticket->refresh();
-        $this->ticket->load('replies.user');
-    }
-
     public function updateAssignment(): void
     {
-        $this->ticket->update([
+        $isNewAssignment = !$this->ticket->assigned_at && ($this->assignDepartment || $this->assignUnit);
+
+        $data = [
             'department_id' => $this->assignDepartment ?: null,
             'unit_id' => $this->assignUnit ?: null,
-        ]);
+        ];
+
+        // Set assigned_at on first assignment
+        if ($isNewAssignment) {
+            $data['assigned_at'] = now();
+            $data['status'] = 'in_progress';
+            $this->newStatus = 'in_progress';
+        }
+
+        $this->ticket->update($data);
         $this->ticket->refresh();
         $this->ticket->load(['department', 'unit']);
+
+        // Send email notification
+        if ($this->assignDepartment || $this->assignUnit) {
+            $this->sendAssignmentNotification();
+        }
+    }
+
+    protected function sendAssignmentNotification(): void
+    {
+        $emails = collect();
+
+        // Get emails from unit if assigned
+        if ($this->ticket->unit_id && $this->ticket->unit?->emails) {
+            $emails = $emails->merge($this->ticket->unit->emails);
+        }
+        // Otherwise get emails from department
+        elseif ($this->ticket->department_id && $this->ticket->department?->emails) {
+            $emails = $emails->merge($this->ticket->department->emails);
+        }
+
+        // Send notification to collected emails
+        if ($emails->isNotEmpty()) {
+            Notification::route('mail', $emails->toArray())
+                ->notify(new TicketAssigned($this->ticket));
+        }
     }
 
     public function updatedAssignDepartment($value): void

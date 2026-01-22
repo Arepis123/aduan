@@ -18,7 +18,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'sector_id',
         'department_id',
+        'unit_id',
         'phone',
     ];
 
@@ -35,9 +37,19 @@ class User extends Authenticatable
         ];
     }
 
+    public function sector(): BelongsTo
+    {
+        return $this->belongsTo(Sector::class);
+    }
+
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class);
     }
 
     public function assignedTickets(): HasMany

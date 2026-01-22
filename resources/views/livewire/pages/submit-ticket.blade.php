@@ -81,32 +81,6 @@
                     <flux:legend>Ticket Details</flux:legend>
 
                     <div class="space-y-6 mt-4">
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <flux:field>
-                                <flux:label badge="Required">Department</flux:label>
-                                <flux:select wire:model.live="department_id" placeholder="Select a department">
-                                    @foreach($departments as $department)
-                                        <flux:select.option value="{{ $department->id }}">
-                                            {{ $department->name }}
-                                        </flux:select.option>
-                                    @endforeach
-                                </flux:select>
-                                <flux:error name="department_id" />
-                            </flux:field>
-
-                            <flux:field>
-                                <flux:label badge="Required">Category</flux:label>
-                                <flux:select wire:model="category_id" placeholder="Select a category" :disabled="empty($categories)">
-                                    @foreach($categories as $category)
-                                        <flux:select.option value="{{ $category['id'] }}">
-                                            {{ $category['name'] }}
-                                        </flux:select.option>
-                                    @endforeach
-                                </flux:select>
-                                <flux:error name="category_id" />
-                            </flux:field>
-                        </div>
-
                         <flux:field>
                             <flux:label badge="Required">Subject</flux:label>
                             <flux:input wire:model="subject" placeholder="Brief description of your issue" />

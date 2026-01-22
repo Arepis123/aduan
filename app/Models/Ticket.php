@@ -25,6 +25,7 @@ class Ticket extends Model
         'description',
         'priority',
         'status',
+        'assigned_at',
         'resolved_at',
         'closed_at',
     ];
@@ -32,9 +33,31 @@ class Ticket extends Model
     protected function casts(): array
     {
         return [
+            'assigned_at' => 'datetime',
             'resolved_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
+    }
+
+    public function getDueDateAttribute(): ?\Carbon\Carbon
+    {
+        return $this->assigned_at?->addDays(7);
+    }
+
+    public function getIsOverdueAttribute(): bool
+    {
+        if (!$this->assigned_at || in_array($this->status, ['resolved', 'closed'])) {
+            return false;
+        }
+        return now()->gt($this->due_date);
+    }
+
+    public function getDaysRemainingAttribute(): ?int
+    {
+        if (!$this->assigned_at || in_array($this->status, ['resolved', 'closed'])) {
+            return null;
+        }
+        return (int) now()->diffInDays($this->due_date, false);
     }
 
     public static function boot()

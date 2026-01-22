@@ -40,9 +40,15 @@
                     </div>
                 @endif
 
-                <div class="text-center mb-4">
-                    <flux:heading size="xl">{{ $unit->categories_count }}</flux:heading>
-                    <flux:text size="sm">Categories</flux:text>
+                <div class="grid grid-cols-2 gap-4 mb-4 text-center">
+                    <div>
+                        <flux:heading size="xl">{{ $unit->categories_count }}</flux:heading>
+                        <flux:text size="sm">Categories</flux:text>
+                    </div>
+                    <div>
+                        <flux:heading size="xl">{{ $unit->users_count }}</flux:heading>
+                        <flux:text size="sm">Users</flux:text>
+                    </div>
                 </div>
 
                 <flux:separator class="my-4" />

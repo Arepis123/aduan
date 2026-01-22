@@ -2,11 +2,44 @@
     <!-- Header -->
     <div class="flex items-center gap-4">
         <flux:button href="{{ route('staff.tickets.index') }}" variant="ghost" icon="arrow-left" wire:navigate />
-        <div>
-            <flux:heading size="xl">{{ $ticket->ticket_number }}</flux:heading>
+        <div class="flex-1">
+            <div class="flex items-center gap-3">
+                <flux:heading size="xl">{{ $ticket->ticket_number }}</flux:heading>
+                <flux:badge :color="$ticket->status_color">{{ ucfirst(str_replace('_', ' ', $ticket->status)) }}</flux:badge>
+                <flux:badge :color="$ticket->priority_color">{{ ucfirst($ticket->priority) }}</flux:badge>
+            </div>
             <flux:text size="sm">{{ $ticket->requester_name }} &lt;{{ $ticket->requester_email }}&gt;</flux:text>
         </div>
     </div>
+
+    <!-- Deadline Warning -->
+    @if($ticket->assigned_at && $ticket->isOpen())
+        <div @class([
+            'p-4 rounded-lg border',
+            'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800' => $ticket->is_overdue,
+            'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800' => !$ticket->is_overdue && $ticket->days_remaining <= 2,
+            'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' => !$ticket->is_overdue && $ticket->days_remaining > 2,
+        ])>
+            <div class="flex items-center gap-3">
+                @if($ticket->is_overdue)
+                    <flux:icon.exclamation-triangle class="size-5 text-red-600" />
+                    <flux:text class="font-medium text-red-800 dark:text-red-200">
+                        This ticket is overdue! Due date was {{ $ticket->due_date->format('d M Y') }}
+                    </flux:text>
+                @elseif($ticket->days_remaining <= 2)
+                    <flux:icon.clock class="size-5 text-amber-600" />
+                    <flux:text class="font-medium text-amber-800 dark:text-amber-200">
+                        {{ $ticket->days_remaining }} day(s) remaining - Due {{ $ticket->due_date->format('d M Y') }}
+                    </flux:text>
+                @else
+                    <flux:icon.clock class="size-5 text-green-600" />
+                    <flux:text class="font-medium text-green-800 dark:text-green-200">
+                        {{ $ticket->days_remaining }} days remaining - Due {{ $ticket->due_date->format('d M Y') }}
+                    </flux:text>
+                @endif
+            </div>
+        </div>
+    @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Content -->
@@ -18,11 +51,11 @@
                     {!! nl2br(e($ticket->description)) !!}
                 </div>
 
-                @if($ticket->attachments->where('ticket_reply_id', null)->count() > 0)
+                @if($ticket->attachments->count() > 0)
                     <flux:separator class="my-6" />
                     <flux:heading size="sm" class="mb-3">Attachments</flux:heading>
                     <div class="flex flex-wrap gap-2">
-                        @foreach($ticket->attachments->where('ticket_reply_id', null) as $attachment)
+                        @foreach($ticket->attachments as $attachment)
                             <flux:button
                                 href="{{ $attachment->url }}"
                                 target="_blank"
@@ -37,59 +70,27 @@
                 @endif
             </flux:card>
 
-            <!-- Conversation -->
+            <!-- Requester Information -->
             <flux:card>
-                <flux:heading size="lg" class="mb-4">Conversation</flux:heading>
-
-                @if($ticket->replies->count() > 0)
-                    <div class="space-y-4 mb-6">
-                        @foreach($ticket->replies as $reply)
-                            <div @class([
-                                'p-4 rounded-lg',
-                                'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800' => !$reply->is_client_reply && !$reply->is_internal_note,
-                                'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' => $reply->is_internal_note,
-                                'bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700' => $reply->is_client_reply,
-                            ])>
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2">
-                                        <flux:text class="font-medium">{{ $reply->author_name }}</flux:text>
-                                        @if($reply->is_internal_note)
-                                            <flux:badge size="sm" color="amber">Internal Note</flux:badge>
-                                        @elseif(!$reply->is_client_reply)
-                                            <flux:badge size="sm" color="indigo">Staff</flux:badge>
-                                        @endif
-                                    </div>
-                                    <flux:text size="xs">{{ $reply->created_at->format('M d, Y h:i A') }}</flux:text>
-                                </div>
-                                <div class="text-zinc-700 dark:text-zinc-300">
-                                    {!! nl2br(e($reply->message)) !!}
-                                </div>
-                            </div>
-                        @endforeach
+                <flux:heading size="lg" class="mb-4">Requester Information</flux:heading>
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <flux:text size="sm" class="text-zinc-500">Name</flux:text>
+                        <flux:text class="font-medium">{{ $ticket->requester_name }}</flux:text>
                     </div>
-                @else
-                    <flux:text class="text-center py-4 mb-6">No replies yet.</flux:text>
-                @endif
-
-                <!-- Reply Form -->
-                <flux:separator class="my-6" />
-                <form wire:submit="submitReply" class="space-y-4">
-                    <flux:field>
-                        <flux:label>Add Reply</flux:label>
-                        <flux:textarea
-                            wire:model="reply"
-                            placeholder="Type your response here..."
-                            rows="4"
-                        />
-                        <flux:error name="reply" />
-                    </flux:field>
-                    <div class="flex items-center justify-between">
-                        <flux:checkbox wire:model="isInternalNote" label="Internal note (not visible to requester)" />
-                        <flux:button type="submit" variant="primary" icon="paper-airplane">
-                            Send Reply
-                        </flux:button>
+                    <div>
+                        <flux:text size="sm" class="text-zinc-500">Email</flux:text>
+                        <flux:text class="font-medium">{{ $ticket->requester_email }}</flux:text>
                     </div>
-                </form>
+                    <div>
+                        <flux:text size="sm" class="text-zinc-500">Phone</flux:text>
+                        <flux:text class="font-medium">{{ $ticket->requester_phone ?? 'N/A' }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:text size="sm" class="text-zinc-500">Type</flux:text>
+                        <flux:text class="font-medium">{{ ucfirst($ticket->requester_type) }}</flux:text>
+                    </div>
+                </dl>
             </flux:card>
         </div>
 
@@ -158,8 +159,14 @@
                     </flux:field>
 
                     <flux:button wire:click="updateAssignment" variant="primary" size="sm" class="w-full">
-                        Update Assignment
+                        Assign & Send Notification
                     </flux:button>
+
+                    @if($ticket->assigned_at)
+                        <flux:text size="xs" class="text-center text-zinc-500">
+                            Assigned on {{ $ticket->assigned_at->format('d M Y, h:i A') }}
+                        </flux:text>
+                    @endif
                 </div>
             </flux:card>
 
@@ -169,40 +176,38 @@
 
                 <dl class="space-y-3">
                     <div>
-                        <flux:text size="sm">Department</flux:text>
+                        <flux:text size="sm" class="text-zinc-500">Department</flux:text>
                         <flux:text class="font-medium">{{ $ticket->department?->name ?? 'Unassigned' }}</flux:text>
                     </div>
                     <div>
-                        <flux:text size="sm">Unit</flux:text>
+                        <flux:text size="sm" class="text-zinc-500">Unit</flux:text>
                         <flux:text class="font-medium">{{ $ticket->unit?->name ?? 'Unassigned' }}</flux:text>
                     </div>
                     <div>
-                        <flux:text size="sm">Category</flux:text>
+                        <flux:text size="sm" class="text-zinc-500">Category</flux:text>
                         <flux:text class="font-medium">{{ $ticket->category?->name ?? 'N/A' }}</flux:text>
-                    </div>
-                    <div>
-                        <flux:text size="sm">Requester Type</flux:text>
-                        <flux:text class="font-medium">{{ ucfirst($ticket->requester_type) }}</flux:text>
-                    </div>
-                    <div>
-                        <flux:text size="sm">Phone</flux:text>
-                        <flux:text class="font-medium">{{ $ticket->requester_phone ?? 'N/A' }}</flux:text>
                     </div>
                     <flux:separator />
                     <div>
-                        <flux:text size="sm">Created</flux:text>
-                        <flux:text class="font-medium">{{ $ticket->created_at->format('M d, Y h:i A') }}</flux:text>
+                        <flux:text size="sm" class="text-zinc-500">Created</flux:text>
+                        <flux:text class="font-medium">{{ $ticket->created_at->format('d M Y, h:i A') }}</flux:text>
                     </div>
+                    @if($ticket->assigned_at)
+                        <div>
+                            <flux:text size="sm" class="text-zinc-500">Assigned</flux:text>
+                            <flux:text class="font-medium">{{ $ticket->assigned_at->format('d M Y, h:i A') }}</flux:text>
+                        </div>
+                    @endif
                     @if($ticket->resolved_at)
                         <div>
-                            <flux:text size="sm">Resolved</flux:text>
-                            <flux:text class="font-medium">{{ $ticket->resolved_at->format('M d, Y h:i A') }}</flux:text>
+                            <flux:text size="sm" class="text-zinc-500">Resolved</flux:text>
+                            <flux:text class="font-medium">{{ $ticket->resolved_at->format('d M Y, h:i A') }}</flux:text>
                         </div>
                     @endif
                     @if($ticket->closed_at)
                         <div>
-                            <flux:text size="sm">Closed</flux:text>
-                            <flux:text class="font-medium">{{ $ticket->closed_at->format('M d, Y h:i A') }}</flux:text>
+                            <flux:text size="sm" class="text-zinc-500">Closed</flux:text>
+                            <flux:text class="font-medium">{{ $ticket->closed_at->format('d M Y, h:i A') }}</flux:text>
                         </div>
                     @endif
                 </dl>

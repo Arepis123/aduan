@@ -2,8 +2,6 @@
 
 namespace App\Livewire\Pages;
 
-use App\Models\Category;
-use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\TicketAttachment;
 use App\Services\MathCaptchaService;
@@ -29,12 +27,6 @@ class SubmitTicket extends Component
     #[Validate('nullable|string|max:20')]
     public ?string $phone = '';
 
-    #[Validate('required|exists:departments,id')]
-    public ?int $department_id = null;
-
-    #[Validate('required|exists:categories,id')]
-    public ?int $category_id = null;
-
     #[Validate('required|string|max:255')]
     public string $subject = '';
 
@@ -52,7 +44,6 @@ class SubmitTicket extends Component
     public string $captchaHash = '';
     public string $captchaAnswer = '';
 
-    public array $categories = [];
     public ?Ticket $submittedTicket = null;
 
     public function mount(): void
@@ -67,14 +58,6 @@ class SubmitTicket extends Component
         $this->captchaQuestion = $captcha['question'];
         $this->captchaHash = $captcha['hash'];
         $this->captchaAnswer = '';
-    }
-
-    public function updatedDepartmentId($value): void
-    {
-        $this->category_id = null;
-        $this->categories = $value
-            ? Category::where('department_id', $value)->active()->get()->toArray()
-            : [];
     }
 
     public function validateForm(): void
@@ -115,8 +98,6 @@ class SubmitTicket extends Component
             'requester_email' => $this->email,
             'requester_phone' => $this->phone,
             'requester_type' => 'external',
-            'department_id' => $this->department_id,
-            'category_id' => $this->category_id,
             'subject' => $this->subject,
             'description' => $this->description,
             'priority' => $this->priority,
@@ -232,8 +213,6 @@ class SubmitTicket extends Component
 
     public function render()
     {
-        return view('livewire.pages.submit-ticket', [
-            'departments' => Department::active()->get(),
-        ]);
+        return view('livewire.pages.submit-ticket');
     }
 }

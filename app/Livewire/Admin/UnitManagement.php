@@ -108,7 +108,7 @@ class UnitManagement extends Component
     public function render()
     {
         return view('livewire.admin.unit-management', [
-            'units' => Unit::with('department')->withCount('categories')->orderBy('name')->get(),
+            'units' => Unit::with('department')->withCount(['categories', 'users'])->orderBy('name')->get(),
             'departments' => Department::active()->orderBy('name')->get(),
         ]);
     }

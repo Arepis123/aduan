@@ -108,7 +108,7 @@ class DepartmentManagement extends Component
     public function render()
     {
         return view('livewire.admin.department-management', [
-            'departments' => Department::with('sector')->withCount(['users', 'tickets', 'categories'])->orderBy('name')->get(),
+            'departments' => Department::with('sector')->withCount(['users', 'units', 'tickets', 'categories'])->orderBy('name')->get(),
             'sectors' => Sector::active()->orderBy('name')->get(),
         ]);
     }

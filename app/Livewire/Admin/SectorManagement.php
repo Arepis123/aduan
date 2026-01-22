@@ -101,7 +101,7 @@ class SectorManagement extends Component
     public function render()
     {
         return view('livewire.admin.sector-management', [
-            'sectors' => Sector::withCount('departments')->orderBy('name')->get(),
+            'sectors' => Sector::withCount(['departments', 'users'])->orderBy('name')->get(),
         ]);
     }
 }

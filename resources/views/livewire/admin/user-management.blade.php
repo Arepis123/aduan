@@ -22,7 +22,7 @@
                 <flux:table.column>Name</flux:table.column>
                 <flux:table.column>Email</flux:table.column>
                 <flux:table.column>Role</flux:table.column>
-                <flux:table.column>Department</flux:table.column>
+                <flux:table.column>Assignment</flux:table.column>
                 <flux:table.column>Actions</flux:table.column>
             </flux:table.columns>
 
@@ -44,7 +44,20 @@
                             </flux:badge>
                         </flux:table.cell>
                         <flux:table.cell>
-                            {{ $user->department?->name ?? '-' }}
+                            <div class="flex flex-wrap gap-1">
+                                @if($user->sector)
+                                    <flux:badge size="sm" color="amber">{{ $user->sector->name }}</flux:badge>
+                                @endif
+                                @if($user->department)
+                                    <flux:badge size="sm" color="indigo">{{ $user->department->name }}</flux:badge>
+                                @endif
+                                @if($user->unit)
+                                    <flux:badge size="sm" color="sky">{{ $user->unit->name }}</flux:badge>
+                                @endif
+                                @if(!$user->sector && !$user->department && !$user->unit)
+                                    <flux:text size="sm" class="text-zinc-400">-</flux:text>
+                                @endif
+                            </div>
                         </flux:table.cell>
                         <flux:table.cell>
                             <div class="flex gap-2">
@@ -109,15 +122,47 @@
                     <flux:error name="role" />
                 </flux:field>
 
+                <flux:separator />
+
+                <flux:heading size="sm">Organization Assignment</flux:heading>
+
+                <flux:field>
+                    <flux:label>Sector</flux:label>
+                    <flux:select wire:model.live="sector_id">
+                        <flux:select.option value="">No Sector</flux:select.option>
+                        @foreach($sectors as $sector)
+                            <flux:select.option value="{{ $sector->id }}">{{ $sector->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </flux:field>
+
                 <flux:field>
                     <flux:label>Department</flux:label>
-                    <flux:select wire:model="department_id">
+                    <flux:select wire:model.live="department_id" :disabled="!$sector_id">
                         <flux:select.option value="">No Department</flux:select.option>
                         @foreach($departments as $dept)
                             <flux:select.option value="{{ $dept->id }}">{{ $dept->name }}</flux:select.option>
                         @endforeach
                     </flux:select>
+                    @if(!$sector_id)
+                        <flux:description>Select a sector first</flux:description>
+                    @endif
                 </flux:field>
+
+                <flux:field>
+                    <flux:label>Unit</flux:label>
+                    <flux:select wire:model="unit_id" :disabled="!$department_id">
+                        <flux:select.option value="">No Unit</flux:select.option>
+                        @foreach($units as $unit)
+                            <flux:select.option value="{{ $unit->id }}">{{ $unit->name }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    @if(!$department_id)
+                        <flux:description>Select a department first</flux:description>
+                    @endif
+                </flux:field>
+
+                <flux:separator />
 
                 <flux:field>
                     <flux:label>Phone</flux:label>

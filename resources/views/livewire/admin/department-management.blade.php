@@ -40,10 +40,14 @@
                     </div>
                 @endif
 
-                <div class="grid grid-cols-3 gap-4 mb-4 text-center">
+                <div class="grid grid-cols-4 gap-2 mb-4 text-center">
                     <div>
                         <flux:heading size="lg">{{ $department->users_count }}</flux:heading>
                         <flux:text size="xs">Users</flux:text>
+                    </div>
+                    <div>
+                        <flux:heading size="lg">{{ $department->units_count }}</flux:heading>
+                        <flux:text size="xs">Units</flux:text>
                     </div>
                     <div>
                         <flux:heading size="lg">{{ $department->categories_count }}</flux:heading>
