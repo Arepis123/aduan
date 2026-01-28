@@ -20,7 +20,12 @@
       "Bash(del \"C:\\\\xampp\\\\htdocs\\\\aduan\\\\app\\\\Rules\\\\ReCaptcha.php\" \"C:\\\\xampp\\\\htdocs\\\\aduan\\\\app\\\\Services\\\\ReCaptchaService.php\" \"C:\\\\xampp\\\\htdocs\\\\aduan\\\\config\\\\recaptcha.php\")",
       "Bash(composer show:*)",
       "Bash(dir /s /b C:xampphtdocsaduanresourcesviewsflux)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(dir:*)",
+      "Bash(test:*)",
+      "Bash(composer install:*)",
+      "Bash(copy .env.example .env)",
+      "Bash(cp:*)"
     ]
   }
 }

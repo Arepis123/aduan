@@ -19,7 +19,7 @@
         <flux:header container class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
-            <flux:brand href="{{ route('home') }}" logo="https://fluxui.dev/img/demo/logo.png" name="Acme Inc." class="max-lg:hidden dark:hidden" />
+            <flux:brand href="{{ route('home') }}" logo="https://fluxui.dev/img/demo/logo.png" name="Sistem Aduan CLAB" class="max-lg:hidden dark:hidden" />
             <flux:brand href="{{ route('home') }}" logo="https://fluxui.dev/img/demo/dark-mode-logo.png" name="Sistem Aduan CLAB" class="max-lg:hidden! hidden dark:flex" />
 
             <flux:navbar class="-mb-px max-lg:hidden">
@@ -112,15 +112,17 @@
         </flux:sidebar>
 
         <!-- Page Content -->
-        <main class="flex-1">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main class="flex-1 relative">
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('images/background-1.jpg') }}');"></div>
+            <div class="absolute inset-0 dark:bg-black/40"></div>
+            <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {{ $slot }}
             </div>
         </main>
 
         <!-- Footer -->
         <footer class="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 mt-auto">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <flux:text class="text-center text-sm">
                     &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
                 </flux:text>
