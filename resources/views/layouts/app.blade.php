@@ -16,59 +16,66 @@
         @fluxAppearance
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky stashable class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+        <flux:sidebar sticky collapsible class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-            <a href="{{ route('staff.dashboard') }}" class="flex items-center gap-2 px-2 mb-6" wire:navigate>
-                <flux:icon.document-text class="size-6 text-indigo-600" />
-                <flux:heading size="lg" class="font-semibold">{{ config('app.name') }}</flux:heading>
-            </a>
+            <flux:sidebar.header>
+                <flux:sidebar.brand
+                    href="{{ route('staff.dashboard') }}"
+                    logo="https://fluxui.dev/img/demo/logo.png"
+                    logo:dark="https://fluxui.dev/img/demo/logo.png"
+                    name="{{ config('app.name') }}"
+                />
+                <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
+            </flux:sidebar.header>
 
-            <flux:navlist variant="outline">
-                <flux:navlist.item href="{{ route('staff.dashboard') }}" :current="request()->routeIs('staff.dashboard')" wire:navigate icon="home">
+            <flux:sidebar.nav>
+                <flux:sidebar.item href="{{ route('staff.dashboard') }}" :current="request()->routeIs('staff.dashboard')" wire:navigate icon="home">
                     Dashboard
-                </flux:navlist.item>
-                <flux:navlist.item href="{{ route('staff.submit') }}" :current="request()->routeIs('staff.submit')" wire:navigate icon="plus-circle">
+                </flux:sidebar.item>
+                <flux:sidebar.item href="{{ route('staff.submit') }}" :current="request()->routeIs('staff.submit')" wire:navigate icon="plus-circle">
                     Submit Ticket
-                </flux:navlist.item>
-                <flux:navlist.item href="{{ route('staff.tickets.index') }}" :current="request()->routeIs('staff.tickets.*')" wire:navigate icon="ticket">
+                </flux:sidebar.item>
+                <flux:sidebar.item href="{{ route('staff.tickets.index') }}" :current="request()->routeIs('staff.tickets.*')" wire:navigate icon="ticket">
                     Tickets
-                </flux:navlist.item>
-            </flux:navlist>
+                </flux:sidebar.item>
+            </flux:sidebar.nav>
+
+            <div class="px-3 mt-4 in-data-flux-sidebar-collapsed-desktop:hidden">
+                <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-400 uppercase tracking-wider">{{ __('ADMINISTRATOR') }}</h3>
+            </div>            
 
             @can('users.view')
-            <flux:navlist variant="outline" class="mt-4">
-                <flux:navlist.group heading="Administration" expandable>
-                    <flux:navlist.item href="{{ route('staff.users.index') }}" :current="request()->routeIs('staff.users.*')" wire:navigate icon="users">
-                        Users
-                    </flux:navlist.item>
-                    <flux:navlist.item href="{{ route('staff.sectors.index') }}" :current="request()->routeIs('staff.sectors.*')" wire:navigate icon="building-library">
-                        Sectors
-                    </flux:navlist.item>
-                    <flux:navlist.item href="{{ route('staff.departments.index') }}" :current="request()->routeIs('staff.departments.*')" wire:navigate icon="building-office">
-                        Departments
-                    </flux:navlist.item>
-                    <flux:navlist.item href="{{ route('staff.units.index') }}" :current="request()->routeIs('staff.units.*')" wire:navigate icon="square-3-stack-3d">
-                        Units
-                    </flux:navlist.item>
-                    <flux:navlist.item href="{{ route('staff.categories.index') }}" :current="request()->routeIs('staff.categories.*')" wire:navigate icon="tag">
-                        Categories
-                    </flux:navlist.item>
-                </flux:navlist.group>
-            </flux:navlist>
+            <flux:sidebar.nav>
+                <flux:sidebar.item href="{{ route('staff.users.index') }}" :current="request()->routeIs('staff.users.*')" wire:navigate icon="users">
+                    Users
+                </flux:sidebar.item>
+                <flux:sidebar.item href="{{ route('staff.sectors.index') }}" :current="request()->routeIs('staff.sectors.*')" wire:navigate icon="building-library">
+                    Sectors
+                </flux:sidebar.item>
+                <flux:sidebar.item href="{{ route('staff.departments.index') }}" :current="request()->routeIs('staff.departments.*')" wire:navigate icon="building-office">
+                    Departments
+                </flux:sidebar.item>
+                <flux:sidebar.item href="{{ route('staff.units.index') }}" :current="request()->routeIs('staff.units.*')" wire:navigate icon="square-3-stack-3d">
+                    Units
+                </flux:sidebar.item>
+                <flux:sidebar.item href="{{ route('staff.categories.index') }}" :current="request()->routeIs('staff.categories.*')" wire:navigate icon="tag">
+                    Categories
+                </flux:sidebar.item>
+            </flux:sidebar.nav>
             @endcan
 
             <flux:spacer />
 
-            <flux:navlist variant="outline">
-                <flux:navlist.item href="{{ route('home') }}" wire:navigate icon="globe-alt">
+            <flux:sidebar.nav>
+                <flux:sidebar.item href="{{ route('home') }}" wire:navigate icon="globe-alt">
                     Public Site
-                </flux:navlist.item>
-            </flux:navlist>
+                </flux:sidebar.item>
+            </flux:sidebar.nav>
 
             <!-- User Menu -->
-            <flux:dropdown position="top" align="start" class="mt-4">
-                <flux:profile
+            <flux:dropdown position="top" align="start" class="max-lg:hidden">
+                <flux:sidebar.profile
                     :name="auth()->user()->name"
                     :initials="substr(auth()->user()->name, 0, 2)"
                     icon-trailing="chevron-down"

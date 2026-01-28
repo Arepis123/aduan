@@ -37,20 +37,20 @@ new #[Layout('layouts.guest')] class extends Component
     <form wire:submit="login" class="space-y-6">
         <!-- Email Address -->
         <flux:field>
-            <flux:label badge="Required">Email</flux:label>
+            <flux:label>Email</flux:label>
             <flux:input wire:model="form.email" type="email" placeholder="Enter your email" autofocus autocomplete="username" />
             <flux:error name="form.email" />
         </flux:field>
 
         <!-- Password -->
         <flux:field>
-            <flux:label badge="Required">Password</flux:label>
+            <flux:label>Password</flux:label>
             <flux:input wire:model="form.password" type="password" placeholder="Enter your password" autocomplete="current-password" />
             <flux:error name="form.password" />
         </flux:field>
 
         <!-- Remember Me -->
-        <flux:checkbox wire:model="form.remember" label="Remember me" />
+        <!-- <flux:checkbox wire:model="form.remember" label="Remember me" /> -->
 
         <div class="flex items-center justify-between">
             @if (Route::has('password.request'))
@@ -67,11 +67,11 @@ new #[Layout('layouts.guest')] class extends Component
         </div>
     </form>
 
-    <flux:separator class="my-6" />
+    <!-- <flux:separator class="my-6" />
 
     <flux:text class="text-center" size="sm">
         <flux:link href="{{ route('home') }}" wire:navigate>
             &larr; Back to public site
         </flux:link>
-    </flux:text>
+    </flux:text> -->
 </div>
