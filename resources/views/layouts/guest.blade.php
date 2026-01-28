@@ -29,11 +29,10 @@
 
             <flux:card class="relative z-10 w-full sm:max-w-sm !bg-white dark:!bg-zinc-800 !bg-opacity-95 dark:!bg-opacity-95">
                 {{ $slot }}
+                <div class="relative z-10 mt-6">
+                    <flux:appearance as="switch" />
+                </div>
             </flux:card>
-
-            <div class="relative z-10 mt-6">
-                <flux:appearance as="switch" />
-            </div>
         </div>
 
         @fluxScripts

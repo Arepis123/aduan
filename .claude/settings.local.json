@@ -25,7 +25,10 @@
       "Bash(test:*)",
       "Bash(composer install:*)",
       "Bash(copy .env.example .env)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(composer update:*)",
+      "Bash(composer audit:*)",
+      "Bash(fsutil reparsepoint query:*)"
     ]
   }
 }

@@ -4,7 +4,6 @@ namespace App\Livewire\Staff\Tickets;
 
 use App\Models\Department;
 use App\Models\Ticket;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -31,7 +30,7 @@ class TicketList extends Component
     public ?int $department_id = null;
 
     #[Url]
-    public ?int $assigned_to = null;
+    public string $type = '';
 
     #[Url]
     public string $sortBy = 'created_at';
@@ -60,7 +59,7 @@ class TicketList extends Component
         $this->status = '';
         $this->priority = '';
         $this->department_id = null;
-        $this->assigned_to = null;
+        $this->type = '';
         $this->resetPage();
     }
 
@@ -101,10 +100,8 @@ class TicketList extends Component
             $query->where('department_id', $this->department_id);
         }
 
-        if ($this->assigned_to === 0) {
-            $query->whereNull('user_id');
-        } elseif ($this->assigned_to) {
-            $query->where('user_id', $this->assigned_to);
+        if ($this->type) {
+            $query->where('requester_type', $this->type);
         }
 
         $tickets = $query->orderBy($this->sortBy, $this->sortDirection)->paginate(20);
@@ -112,7 +109,6 @@ class TicketList extends Component
         return view('livewire.staff.tickets.ticket-list', [
             'tickets' => $tickets,
             'departments' => Department::active()->get(),
-            'agents' => User::where('role', 'agent')->orWhere('role', 'admin')->get(),
             'isAdmin' => $isAdmin,
         ]);
     }

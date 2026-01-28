@@ -5,6 +5,9 @@
         <div class="flex-1">
             <div class="flex items-center gap-3">
                 <flux:heading size="xl">{{ $ticket->ticket_number }}</flux:heading>
+                <flux:badge :color="$ticket->requester_type === 'internal' ? 'violet' : 'sky'" size="sm">
+                    {{ $ticket->requester_type === 'internal' ? 'Internal' : 'Public' }}
+                </flux:badge>
                 <flux:badge :color="$ticket->status_color">{{ ucfirst(str_replace('_', ' ', $ticket->status)) }}</flux:badge>
                 <flux:badge :color="$ticket->priority_color">{{ ucfirst($ticket->priority) }}</flux:badge>
             </div>
@@ -107,7 +110,6 @@
                             <flux:select wire:model="newStatus" class="flex-1">
                                 <flux:select.option value="open">Open</flux:select.option>
                                 <flux:select.option value="in_progress">In Progress</flux:select.option>
-                                <flux:select.option value="pending">Pending</flux:select.option>
                                 <flux:select.option value="resolved">Resolved</flux:select.option>
                                 <flux:select.option value="closed">Closed</flux:select.option>
                             </flux:select>

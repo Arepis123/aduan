@@ -70,7 +70,7 @@
             <div class="flex flex-wrap gap-2">
                 @foreach($ticket->attachments->where('ticket_reply_id', null) as $attachment)
                     <flux:button
-                        href="{{ $attachment->url }}"
+                        href="{{ $attachment->getPublicUrl($ticket->ticket_number) }}"
                         target="_blank"
                         variant="ghost"
                         size="sm"

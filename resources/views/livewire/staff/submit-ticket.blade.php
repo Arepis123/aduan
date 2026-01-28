@@ -6,70 +6,44 @@
                 <flux:icon.check class="size-8 text-green-600 dark:text-green-400" />
             </div>
             <flux:heading size="xl" class="mb-2">Ticket Submitted Successfully!</flux:heading>
-            <flux:text class="mb-6">Your ticket has been received. Please save your ticket number for reference.</flux:text>
+            <flux:text class="mb-6">Your internal ticket has been created and logged in the system.</flux:text>
 
             <div class="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-6 mb-6">
                 <flux:text size="sm" class="mb-2">Your Ticket Number</flux:text>
                 <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{{ $submittedTicket->ticket_number }}</p>
             </div>
 
-            <flux:text size="sm" class="mb-6">
-                A confirmation email has been sent to <strong>{{ $submittedTicket->requester_email }}</strong>
-            </flux:text>
-
             <div class="flex justify-center gap-4">
-                <flux:button href="{{ route('ticket.status', $submittedTicket->ticket_number) }}" variant="primary" wire:navigate>
-                    View Ticket Status
+                <flux:button href="{{ route('staff.tickets.show', $submittedTicket) }}" variant="primary" wire:navigate>
+                    View Ticket
                 </flux:button>
-                <flux:button href="{{ route('submit') }}" wire:navigate>
+                <flux:button href="{{ route('staff.submit') }}" wire:navigate>
                     Submit Another Ticket
                 </flux:button>
             </div>
         </flux:card>
     @else
         <!-- Ticket Form -->
-        <flux:card class="dark:bg-zinc-900">
-            <flux:heading size="xl" class="mb-2">Submit a New Ticket</flux:heading>
-            <flux:subheading class="mb-8">Fill out the form below to submit your complaint or enquiry.</flux:subheading>
+        <flux:card>
+            <flux:heading size="xl" class="mb-2">Submit Internal Ticket</flux:heading>
+            <flux:subheading class="mb-8">Submit a complaint or enquiry as a staff member.</flux:subheading>
 
             <form wire:submit="submit" class="space-y-6">
-                <!-- Form-level errors (security, rate limiting) -->
-                @error('form')
-                    <flux:callout variant="danger" icon="exclamation-triangle">
-                        <flux:callout.heading>Submission Error</flux:callout.heading>
-                        <flux:callout.text>{{ $message }}</flux:callout.text>
-                    </flux:callout>
-                @enderror
-
-
-                <!-- Honeypot fields (hidden from real users, bots will fill these) -->
-                <div class="hidden" aria-hidden="true">
-                    <input type="text" name="website" wire:model="website" tabindex="-1" autocomplete="off">
-                    <input type="hidden" name="honeypot_time" wire:model="honeypot_time">
-                </div>
-
-                <!-- Personal Information -->
+                <!-- Requester Information (Auto-filled) -->
                 <flux:fieldset>
                     <flux:legend>Your Information</flux:legend>
 
                     <div class="grid md:grid-cols-2 gap-6 mt-4">
                         <flux:field>
-                            <flux:label badge="Required">Full Name</flux:label>
-                            <flux:input wire:model="name" placeholder="Enter your full name" />
-                            <flux:error name="name" />
+                            <flux:label>Full Name</flux:label>
+                            <flux:input value="{{ auth()->user()->name }}" disabled />
+                            <flux:description>Auto-filled from your account</flux:description>
                         </flux:field>
 
                         <flux:field>
-                            <flux:label badge="Required">Email Address</flux:label>
-                            <flux:input wire:model="email" type="email" placeholder="Enter your email" />
-                            <flux:error name="email" />
-                        </flux:field>
-
-                        <flux:field class="md:col-span-2">
-                            <flux:label>Phone Number</flux:label>
-                            <flux:input wire:model="phone" placeholder="Enter your phone number" />
-                            <flux:description>Optional - for urgent matters</flux:description>
-                            <flux:error name="phone" />
+                            <flux:label>Email Address</flux:label>
+                            <flux:input value="{{ auth()->user()->email }}" disabled />
+                            <flux:description>Auto-filled from your account</flux:description>
                         </flux:field>
                     </div>
                 </flux:fieldset>
@@ -168,74 +142,17 @@
                 <!-- Submit Button -->
                 <div class="flex justify-end pt-4">
                     <flux:button
-                        type="button"
+                        type="submit"
                         variant="primary"
                         icon="paper-airplane"
-                        wire:click="validateForm"
                         wire:loading.attr="disabled"
-                        wire:target="validateForm"
+                        wire:target="submit"
                     >
-                        <span wire:loading.remove wire:target="validateForm">Submit Ticket</span>
-                        <span wire:loading wire:target="validateForm">Validating...</span>
+                        <span wire:loading.remove wire:target="submit">Submit Ticket</span>
+                        <span wire:loading wire:target="submit">Submitting...</span>
                     </flux:button>
                 </div>
             </form>
         </flux:card>
-
-        <!-- Security Verification Modal -->
-        <flux:modal name="captcha-modal" class="max-w-md">
-            <div class="space-y-6">
-                <div>
-                    <flux:heading size="lg">Security Verification</flux:heading>
-                    <flux:subheading>Please solve this simple math problem to verify you're human.</flux:subheading>
-                </div>
-
-                <div class="flex items-center justify-center py-4">
-                    <div class="text-center">
-                        <flux:text class="text-lg mb-2">What is</flux:text>
-                        <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">{{ $captchaQuestion }}</p>
-                    </div>
-                </div>
-
-                <flux:field>
-                    <flux:label>Your Answer</flux:label>
-                    <flux:input
-                        wire:model="captchaAnswer"
-                        type="number"
-                        placeholder="Enter the answer"
-                        autofocus
-                    />
-                    <flux:error name="captchaAnswer" />
-                </flux:field>
-
-                <div class="flex justify-between items-center">
-                    <flux:button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        icon="arrow-path"
-                        wire:click="refreshCaptcha"
-                    >
-                        Different Question
-                    </flux:button>
-
-                    <div class="flex gap-2">
-                        <flux:modal.close>
-                            <flux:button variant="ghost">Cancel</flux:button>
-                        </flux:modal.close>
-                        <flux:button
-                            variant="primary"
-                            icon="paper-airplane"
-                            wire:click="submit"
-                            wire:loading.attr="disabled"
-                            wire:target="submit"
-                        >
-                            <span wire:loading.remove wire:target="submit">Submit</span>
-                            <span wire:loading wire:target="submit">Submitting...</span>
-                        </flux:button>
-                    </div>
-                </div>
-            </div>
-        </flux:modal>
     @endif
 </div>

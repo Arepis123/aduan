@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\AttachmentController;
 use App\Livewire\Pages\CheckStatus;
 use App\Livewire\Pages\Home;
 use App\Livewire\Pages\SubmitTicket;
 use App\Livewire\Pages\TicketStatus;
 use App\Livewire\Staff\Dashboard;
+use App\Livewire\Staff\SubmitTicket as StaffSubmitTicket;
 use App\Livewire\Staff\Tickets\TicketDetail;
 use App\Livewire\Staff\Tickets\TicketList;
 use App\Livewire\Admin\CategoryManagement;
@@ -19,12 +21,15 @@ Route::get('/', Home::class)->name('home');
 Route::get('/submit', SubmitTicket::class)->name('submit');
 Route::get('/check', CheckStatus::class)->name('check');
 Route::get('/ticket/{ticketNumber}', TicketStatus::class)->name('ticket.status');
+Route::get('/ticket/{ticketNumber}/attachment/{attachment}', [AttachmentController::class, 'public'])->name('attachment.public');
 
 // Staff routes
 Route::middleware(['auth'])->prefix('staff')->name('staff.')->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
+    Route::get('/submit', StaffSubmitTicket::class)->name('submit');
     Route::get('/tickets', TicketList::class)->name('tickets.index');
     Route::get('/tickets/{ticket}', TicketDetail::class)->name('tickets.show');
+    Route::get('/attachment/{attachment}', [AttachmentController::class, 'staff'])->name('attachment');
 
     // Admin only routes
     Route::middleware(['can:users.view'])->group(function () {

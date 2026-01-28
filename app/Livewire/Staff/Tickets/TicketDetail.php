@@ -6,6 +6,8 @@ use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\Unit;
 use App\Notifications\TicketAssigned;
+use App\Notifications\TicketClosed;
+use App\Notifications\TicketResolved;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -36,7 +38,9 @@ class TicketDetail extends Component
 
     public function updateAssignment(): void
     {
-        $isNewAssignment = !$this->ticket->assigned_at && ($this->assignDepartment || $this->assignUnit);
+        $hasAssignment = $this->assignDepartment || $this->assignUnit;
+        $isFirstAssignment = !$this->ticket->assigned_at && $hasAssignment;
+        $isOpenStatus = $this->ticket->status === 'open';
 
         $data = [
             'department_id' => $this->assignDepartment ?: null,
@@ -44,8 +48,12 @@ class TicketDetail extends Component
         ];
 
         // Set assigned_at on first assignment
-        if ($isNewAssignment) {
+        if ($isFirstAssignment) {
             $data['assigned_at'] = now();
+        }
+
+        // Auto-change status to "in_progress" when assigning from "open" status
+        if ($isOpenStatus && $hasAssignment) {
             $data['status'] = 'in_progress';
             $this->newStatus = 'in_progress';
         }
@@ -55,28 +63,50 @@ class TicketDetail extends Component
         $this->ticket->load(['department', 'unit']);
 
         // Send email notification
-        if ($this->assignDepartment || $this->assignUnit) {
+        if ($hasAssignment) {
             $this->sendAssignmentNotification();
         }
     }
 
     protected function sendAssignmentNotification(): void
     {
-        $emails = collect();
+        $toEmails = collect();
+        $ccEmails = collect();
 
-        // Get emails from unit if assigned
+        // Load relationships for email collection
+        $this->ticket->load(['unit.department.sector', 'department.sector']);
+
+        // Get TO emails from unit if assigned
         if ($this->ticket->unit_id && $this->ticket->unit?->emails) {
-            $emails = $emails->merge($this->ticket->unit->emails);
+            $toEmails = $toEmails->merge($this->ticket->unit->emails);
+
+            // CC to Department PIC
+            if ($this->ticket->unit->department?->emails) {
+                $ccEmails = $ccEmails->merge($this->ticket->unit->department->emails);
+            }
+
+            // CC to Sector PIC
+            if ($this->ticket->unit->department?->sector?->emails) {
+                $ccEmails = $ccEmails->merge($this->ticket->unit->department->sector->emails);
+            }
         }
-        // Otherwise get emails from department
+        // Otherwise get TO emails from department
         elseif ($this->ticket->department_id && $this->ticket->department?->emails) {
-            $emails = $emails->merge($this->ticket->department->emails);
+            $toEmails = $toEmails->merge($this->ticket->department->emails);
+
+            // CC to Sector PIC
+            if ($this->ticket->department->sector?->emails) {
+                $ccEmails = $ccEmails->merge($this->ticket->department->sector->emails);
+            }
         }
+
+        // Remove duplicates and ensure CC doesn't include TO emails
+        $ccEmails = $ccEmails->unique()->diff($toEmails)->values();
 
         // Send notification to collected emails
-        if ($emails->isNotEmpty()) {
-            Notification::route('mail', $emails->toArray())
-                ->notify(new TicketAssigned($this->ticket));
+        if ($toEmails->isNotEmpty()) {
+            Notification::route('mail', $toEmails->toArray())
+                ->notify(new TicketAssigned($this->ticket, $ccEmails->toArray()));
         }
     }
 
@@ -88,6 +118,7 @@ class TicketDetail extends Component
 
     public function updateStatus(): void
     {
+        $oldStatus = $this->ticket->status;
         $data = ['status' => $this->newStatus];
 
         if ($this->newStatus === 'resolved') {
@@ -98,6 +129,24 @@ class TicketDetail extends Component
 
         $this->ticket->update($data);
         $this->ticket->refresh();
+
+        // Send notification to requester on status change
+        if ($oldStatus !== $this->newStatus) {
+            $this->sendStatusNotification();
+        }
+    }
+
+    protected function sendStatusNotification(): void
+    {
+        $email = $this->ticket->requester_email;
+
+        if ($this->ticket->status === 'resolved') {
+            Notification::route('mail', $email)
+                ->notify(new TicketResolved($this->ticket));
+        } elseif ($this->ticket->status === 'closed') {
+            Notification::route('mail', $email)
+                ->notify(new TicketClosed($this->ticket));
+        }
     }
 
     public function updatePriority(): void

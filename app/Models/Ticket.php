@@ -137,11 +137,6 @@ class Ticket extends Model
         return $query->where('status', 'in_progress');
     }
 
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
-    }
-
     public function scopeResolved($query)
     {
         return $query->where('status', 'resolved');
@@ -164,7 +159,7 @@ class Ticket extends Model
 
     public function isOpen(): bool
     {
-        return in_array($this->status, ['open', 'in_progress', 'pending']);
+        return in_array($this->status, ['open', 'in_progress']);
     }
 
     public function markAsResolved(): void
@@ -199,10 +194,9 @@ class Ticket extends Model
         return match($this->status) {
             'open' => 'blue',
             'in_progress' => 'yellow',
-            'pending' => 'orange',
             'resolved' => 'green',
-            'closed' => 'gray',
-            default => 'gray',
+            'closed' => 'zinc',
+            default => 'zinc',
         };
     }
 }

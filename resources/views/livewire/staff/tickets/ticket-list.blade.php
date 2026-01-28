@@ -15,7 +15,6 @@
                 <flux:select.option value="">All Status</flux:select.option>
                 <flux:select.option value="open">Open</flux:select.option>
                 <flux:select.option value="in_progress">In Progress</flux:select.option>
-                <flux:select.option value="pending">Pending</flux:select.option>
                 <flux:select.option value="resolved">Resolved</flux:select.option>
                 <flux:select.option value="closed">Closed</flux:select.option>
             </flux:select>
@@ -34,15 +33,13 @@
                     @endforeach
                 </flux:select>
             @endif
-            <flux:select wire:model.live="assigned_to" placeholder="All Agents">
-                <flux:select.option value="">All Agents</flux:select.option>
-                <flux:select.option value="0">Unassigned</flux:select.option>
-                @foreach($agents as $agent)
-                    <flux:select.option value="{{ $agent->id }}">{{ $agent->name }}</flux:select.option>
-                @endforeach
+            <flux:select wire:model.live="type" placeholder="All Types">
+                <flux:select.option value="">All Types</flux:select.option>
+                <flux:select.option value="external">Public</flux:select.option>
+                <flux:select.option value="internal">Internal</flux:select.option>
             </flux:select>
         </div>
-        @if($search || $status || $priority || $department_id || $assigned_to)
+        @if($search || $status || $priority || $department_id || $type)
             <div class="mt-3">
                 <flux:button wire:click="clearFilters" variant="ghost" size="sm">
                     Clear all filters
@@ -60,12 +57,12 @@
                 </flux:table.column>
                 <flux:table.column>Subject</flux:table.column>
                 <flux:table.column>Requester</flux:table.column>
+                <flux:table.column>Type</flux:table.column>
                 <flux:table.column>Department</flux:table.column>
                 <flux:table.column>Status</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'priority'" :direction="$sortDirection" wire:click="sortBy('priority')">
                     Priority
                 </flux:table.column>
-                <flux:table.column>Assigned</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sortBy('created_at')">
                     Created
                 </flux:table.column>
@@ -87,6 +84,14 @@
                             </div>
                         </flux:table.cell>
                         <flux:table.cell>
+                            <flux:badge
+                                size="sm"
+                                :color="$ticket->requester_type === 'internal' ? 'violet' : 'sky'"
+                            >
+                                {{ $ticket->requester_type === 'internal' ? 'Internal' : 'Public' }}
+                            </flux:badge>
+                        </flux:table.cell>
+                        <flux:table.cell>
                             {{ $ticket->department?->name ?? '-' }}
                         </flux:table.cell>
                         <flux:table.cell>
@@ -95,7 +100,6 @@
                                 :color="match($ticket->status) {
                                     'open' => 'blue',
                                     'in_progress' => 'yellow',
-                                    'pending' => 'orange',
                                     'resolved' => 'green',
                                     'closed' => 'zinc',
                                     default => 'zinc'
@@ -117,9 +121,6 @@
                             >
                                 {{ ucfirst($ticket->priority) }}
                             </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            {{ $ticket->assignedAgent?->name ?? 'Unassigned' }}
                         </flux:table.cell>
                         <flux:table.cell>
                             {{ $ticket->created_at->format('M d, Y') }}

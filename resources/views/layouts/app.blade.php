@@ -28,6 +28,9 @@
                 <flux:navlist.item href="{{ route('staff.dashboard') }}" :current="request()->routeIs('staff.dashboard')" wire:navigate icon="home">
                     Dashboard
                 </flux:navlist.item>
+                <flux:navlist.item href="{{ route('staff.submit') }}" :current="request()->routeIs('staff.submit')" wire:navigate icon="plus-circle">
+                    Submit Ticket
+                </flux:navlist.item>
                 <flux:navlist.item href="{{ route('staff.tickets.index') }}" :current="request()->routeIs('staff.tickets.*')" wire:navigate icon="ticket">
                     Tickets
                 </flux:navlist.item>
@@ -68,7 +71,7 @@
                 <flux:profile
                     :name="auth()->user()->name"
                     :initials="substr(auth()->user()->name, 0, 2)"
-                    icon-trailing="chevrons-down-up"
+                    icon-trailing="chevron-down"
                 />
 
                 <flux:menu class="w-[220px]">

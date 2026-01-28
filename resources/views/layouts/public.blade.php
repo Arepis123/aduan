@@ -113,7 +113,7 @@
 
         <!-- Page Content -->
         <main class="flex-1 relative">
-            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('images/background-1.jpg') }}');"></div>
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('images/background-3.jpg') }}');"></div>
             <div class="absolute inset-0 dark:bg-black/40"></div>
             <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {{ $slot }}

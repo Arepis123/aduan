@@ -3,17 +3,14 @@
 namespace App\Notifications;
 
 use App\Models\Ticket;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TicketAssigned extends Notification implements ShouldQueue
+class TicketAssigned extends Notification
 {
-    use Queueable;
-
     public function __construct(
-        public Ticket $ticket
+        public Ticket $ticket,
+        public array $ccEmails = []
     ) {}
 
     public function via(object $notifiable): array
@@ -25,7 +22,7 @@ class TicketAssigned extends Notification implements ShouldQueue
     {
         $dueDate = $this->ticket->due_date?->format('d M Y');
 
-        return (new MailMessage)
+        $mail = (new MailMessage)
             ->subject("[{$this->ticket->ticket_number}] New Ticket Assigned: {$this->ticket->subject}")
             ->greeting('New Ticket Assigned')
             ->line("A new ticket has been assigned to your department/unit.")
@@ -44,6 +41,13 @@ class TicketAssigned extends Notification implements ShouldQueue
             ->line("Please resolve this ticket within 7 days from assignment.")
             ->action('View Ticket', route('staff.tickets.show', $this->ticket))
             ->line('Thank you.');
+
+        // Add CC recipients if any
+        if (!empty($this->ccEmails)) {
+            $mail->cc($this->ccEmails);
+        }
+
+        return $mail;
     }
 
     public function toArray(object $notifiable): array

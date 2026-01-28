@@ -31,9 +31,20 @@ class TicketAttachment extends Model
         return $this->belongsTo(TicketReply::class, 'ticket_reply_id');
     }
 
+    /**
+     * Get the URL for staff to view the attachment
+     */
     public function getUrlAttribute(): string
     {
-        return Storage::url($this->path);
+        return route('staff.attachment', $this);
+    }
+
+    /**
+     * Get the URL for public users to view the attachment (requires ticket number)
+     */
+    public function getPublicUrl(string $ticketNumber): string
+    {
+        return route('attachment.public', ['ticketNumber' => $ticketNumber, 'attachment' => $this]);
     }
 
     public function getHumanSizeAttribute(): string

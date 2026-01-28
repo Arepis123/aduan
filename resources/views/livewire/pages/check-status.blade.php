@@ -1,5 +1,5 @@
 <div class="min-h-[70vh] flex flex-col items-center justify-center space-y-12">
-    <flux:card>
+    <flux:card class="dark:bg-zinc-900">
         <div class="text-center mb-8">
             <div class="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <flux:icon.magnifying-glass class="size-8 text-green-600 dark:text-green-400" />
