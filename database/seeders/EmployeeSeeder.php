@@ -58,7 +58,7 @@ class EmployeeSeeder extends Seeder
             $user = User::create([
                 'name' => $name,
                 'email' => $email,
-                'password' => Hash::make($password),
+                'password' => $password,
                 'role' => 'agent',
             ]);
 

@@ -6,65 +6,74 @@
         </flux:button>
     </div>
 
-    <!-- Sectors Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @forelse($sectors as $sector)
-            <flux:card>
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <flux:heading size="lg">{{ $sector->name }}</flux:heading>
-                    </div>
-                    <flux:badge
-                        size="sm"
-                        :color="$sector->is_active ? 'green' : 'zinc'"
-                    >
-                        {{ $sector->is_active ? 'Active' : 'Inactive' }}
-                    </flux:badge>
-                </div>
+    <!-- Sectors Table -->
+    <flux:card class="p-4 sm:p-6 dark:bg-zinc-900 rounded-lg">
+        <flux:table>
+            <flux:table.columns>
+                <flux:table.column>No</flux:table.column>
+                <flux:table.column>Name</flux:table.column>
+                <flux:table.column>Description</flux:table.column>
+                <flux:table.column>Person(s) In Charge</flux:table.column>
+                <flux:table.column>Departments</flux:table.column>
+                <flux:table.column>Users</flux:table.column>
+                <flux:table.column>Status</flux:table.column>
+                <flux:table.column>Actions</flux:table.column>
+            </flux:table.columns>
 
-                @if($sector->description)
-                    <flux:text size="sm" class="mb-4">{{ $sector->description }}</flux:text>
-                @endif
-
-                @if($sector->emails && count($sector->emails) > 0)
-                    <div class="mb-4">
-                        <flux:text size="xs" class="font-medium mb-2">Person(s) In Charge:</flux:text>
-                        <div class="flex flex-wrap gap-1">
-                            @foreach($sector->emails as $email)
-                                <flux:badge size="sm" color="sky">{{ $email }}</flux:badge>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-
-                <div class="grid grid-cols-2 gap-4 mb-4 text-center">
-                    <div>
-                        <flux:heading size="xl">{{ $sector->departments_count }}</flux:heading>
-                        <flux:text size="sm">Departments</flux:text>
-                    </div>
-                    <div>
-                        <flux:heading size="xl">{{ $sector->users_count }}</flux:heading>
-                        <flux:text size="sm">Users</flux:text>
-                    </div>
-                </div>
-
-                <flux:separator class="my-4" />
-
-                <div class="flex gap-2">
-                    <flux:button wire:click="openModal({{ $sector->id }})" variant="ghost" size="sm" class="flex-1">
-                        Edit
-                    </flux:button>
-                    <flux:button wire:click="delete({{ $sector->id }})" wire:confirm="Are you sure you want to delete this sector? This will unlink all departments from this sector." variant="ghost" size="sm" class="flex-1 text-red-600 hover:text-red-800">
-                        Delete
-                    </flux:button>
-                </div>
-            </flux:card>
-        @empty
-            <flux:card class="col-span-full text-center py-12">
-                <flux:text>No sectors found. Click "Add Sector" to create one.</flux:text>
-            </flux:card>
-        @endforelse
-    </div>
+            <flux:table.rows>
+                @forelse($sectors as $sector)
+                    <flux:table.row>
+                        <flux:table.cell class="font-medium">
+                            {{ $loop->iteration }}
+                        </flux:table.cell>
+                        <flux:table.cell class="font-medium">
+                            {{ $sector->name }}
+                        </flux:table.cell>
+                        <flux:table.cell class="max-w-xs truncate">
+                            {{ $sector->description ?? '-' }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            @if($sector->emails && count($sector->emails) > 0)
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach($sector->emails as $email)
+                                        <flux:badge size="sm" color="sky">{{ $email }}</flux:badge>
+                                    @endforeach
+                                </div>
+                            @else
+                                <flux:text size="sm" class="text-zinc-400">-</flux:text>
+                            @endif
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            {{ $sector->departments_count }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            {{ $sector->users_count }}
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge
+                                size="sm"
+                                :color="$sector->is_active ? 'green' : 'zinc'"
+                            >
+                                {{ $sector->is_active ? 'Active' : 'Inactive' }}
+                            </flux:badge>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="flex gap-2">
+                                <flux:button wire:click="openModal({{ $sector->id }})" variant="ghost" size="sm" icon="pencil" />
+                                <flux:button wire:click="delete({{ $sector->id }})" wire:confirm="Are you sure you want to delete this sector? This will unlink all departments from this sector." variant="ghost" size="sm" icon="trash" class="text-red-600 hover:text-red-800" />
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="8" class="text-center py-8">
+                            <flux:text>No sectors found. Click "Add Sector" to create one.</flux:text>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+    </flux:card>
 
     <!-- Modal -->
     <flux:modal wire:model="showModal" class="max-w-lg">

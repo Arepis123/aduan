@@ -10,6 +10,7 @@
     <flux:card class="p-4 sm:p-6 dark:bg-zinc-900 rounded-lg">
         <flux:table>
             <flux:table.columns>
+                <flux:table.column>No</flux:table.column>
                 <flux:table.column>Name</flux:table.column>
                 <flux:table.column>Description</flux:table.column>
                 <flux:table.column>Department</flux:table.column>
@@ -21,6 +22,9 @@
             <flux:table.rows>
                 @forelse($categories as $category)
                     <flux:table.row>
+                        <flux:table.cell class="font-medium">
+                            {{ $loop->iteration }}
+                        </flux:table.cell>
                         <flux:table.cell class="font-medium">
                             {{ $category->name }}
                         </flux:table.cell>

@@ -14,7 +14,7 @@ class AdminUserSeeder extends Seeder
             ['email' => 'admin@aduan.local'],
             [
                 'name' => 'Administrator',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'role' => 'admin',
                 'email_verified_at' => now(),
             ]
