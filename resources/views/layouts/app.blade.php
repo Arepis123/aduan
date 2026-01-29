@@ -22,8 +22,8 @@
             <flux:sidebar.header>
                 <flux:sidebar.brand
                     href="{{ route('staff.dashboard') }}"
-                    logo="https://fluxui.dev/img/demo/logo.png"
-                    logo:dark="https://fluxui.dev/img/demo/logo.png"
+                    logo="{{ asset('images/logo-clab.png') }}"
+                    logo:dark="{{ asset('images/logo-clab.png') }}"
                     name="{{ config('app.name') }}"
                 />
                 <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
@@ -39,13 +39,12 @@
                 <flux:sidebar.item href="{{ route('staff.tickets.index') }}" :current="request()->routeIs('staff.tickets.*')" wire:navigate icon="ticket">
                     Tickets
                 </flux:sidebar.item>
-            </flux:sidebar.nav>
-
-            <div class="px-3 mt-4 in-data-flux-sidebar-collapsed-desktop:hidden">
-                <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-400 uppercase tracking-wider">{{ __('ADMINISTRATOR') }}</h3>
-            </div>            
+            </flux:sidebar.nav>          
 
             @can('users.view')
+            <div class="px-3 mt-4 in-data-flux-sidebar-collapsed-desktop:hidden">
+                <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-400 uppercase tracking-wider">{{ __('ADMINISTRATOR') }}</h3>
+            </div>              
             <flux:sidebar.nav>
                 <flux:sidebar.item href="{{ route('staff.users.index') }}" :current="request()->routeIs('staff.users.*')" wire:navigate icon="users">
                     Users

@@ -49,6 +49,15 @@
         @endif
     </div>
 
+<div class="overflow-visible">
+    <flux:card class="transition-transform duration-200 hover:scale-105">
+        test
+    </flux:card>
+</div>
+
+
+
+
     <!-- Recent Tickets -->
     <flux:card class="p-4 sm:p-6 dark:bg-zinc-900 rounded-lg">
         <flux:heading size="lg" class="mb-4">Recent Tickets</flux:heading>

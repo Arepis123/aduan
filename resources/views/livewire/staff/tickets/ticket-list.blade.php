@@ -57,8 +57,8 @@
                 </flux:table.column>
                 <flux:table.column>Subject</flux:table.column>
                 <flux:table.column>Requester</flux:table.column>
-                <flux:table.column>Type</flux:table.column>
                 <flux:table.column>Department</flux:table.column>
+                <flux:table.column>Type</flux:table.column>
                 <flux:table.column>Status</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'priority'" :direction="$sortDirection" wire:click="sortBy('priority')">
                     Priority
@@ -84,15 +84,15 @@
                             </div>
                         </flux:table.cell>
                         <flux:table.cell>
+                            {{ $ticket->department?->name ?? '-' }}
+                        </flux:table.cell>
+                        <flux:table.cell>
                             <flux:badge
                                 size="sm"
                                 :color="$ticket->requester_type === 'internal' ? 'violet' : 'sky'"
                             >
                                 {{ $ticket->requester_type === 'internal' ? 'Internal' : 'Public' }}
                             </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            {{ $ticket->department?->name ?? '-' }}
                         </flux:table.cell>
                         <flux:table.cell>
                             <flux:badge
@@ -137,8 +137,8 @@
         </flux:table>
 
         @if($tickets->hasPages())
-            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
-                {{ $tickets->links() }}
+            <div class="pt-4">
+                <flux:pagination :paginator="$tickets" />
             </div>
         @endif
     </flux:card>

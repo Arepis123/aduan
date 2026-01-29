@@ -8,8 +8,8 @@
                 <flux:badge :color="$ticket->requester_type === 'internal' ? 'violet' : 'sky'" size="sm">
                     {{ $ticket->requester_type === 'internal' ? 'Internal' : 'Public' }}
                 </flux:badge>
-                <flux:badge :color="$ticket->status_color">{{ ucfirst(str_replace('_', ' ', $ticket->status)) }}</flux:badge>
-                <flux:badge :color="$ticket->priority_color">{{ ucfirst($ticket->priority) }}</flux:badge>
+                <flux:badge size="sm" :color="$ticket->status_color">{{ ucfirst(str_replace('_', ' ', $ticket->status)) }}</flux:badge>
+                <flux:badge size="sm" :color="$ticket->priority_color">{{ ucfirst($ticket->priority) }}</flux:badge>
             </div>
             <flux:text size="sm">{{ $ticket->requester_name }} &lt;{{ $ticket->requester_email }}&gt;</flux:text>
         </div>

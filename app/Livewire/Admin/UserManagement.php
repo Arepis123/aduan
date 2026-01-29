@@ -150,7 +150,7 @@ class UserManagement extends Component
             })
             ->with(['sector', 'department', 'unit'])
             ->orderBy('name')
-            ->paginate(15);
+            ->paginate(10);
 
         $sectors = Sector::active()->orderBy('name')->get();
         $departments = $this->sector_id

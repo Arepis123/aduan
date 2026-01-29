@@ -101,7 +101,7 @@
                         >
                             <input
                                 type="file"
-                                wire:model="attachments"
+                                wire:model="newAttachments"
                                 multiple
                                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
                                 class="hidden"
@@ -113,7 +113,7 @@
                                     <span class="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500">Click to upload</span>
                                     or drag and drop
                                 </flux:text>
-                                <flux:text size="sm" class="mt-1">PDF, DOC, DOCX, JPG, PNG, GIF up to 10MB each</flux:text>
+                                <flux:text size="sm" class="mt-1">PDF, DOC, DOCX, JPG, PNG, GIF up to 10MB each (max 5 files)</flux:text>
                             </label>
                         </div>
 
@@ -133,6 +133,9 @@
                             </ul>
                         @endif
 
+                        @error('attachments')
+                            <flux:text size="sm" class="mt-2 text-red-600">{{ $message }}</flux:text>
+                        @enderror
                         @error('attachments.*')
                             <flux:text size="sm" class="mt-2 text-red-600">{{ $message }}</flux:text>
                         @enderror

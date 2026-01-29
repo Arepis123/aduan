@@ -79,8 +79,8 @@
         </flux:table>
 
         @if($users->hasPages())
-            <div class="p-4 border-t border-zinc-200 dark:border-zinc-700">
-                {{ $users->links() }}
+            <div class="pt-4">
+                <flux:pagination :paginator="$users" />
             </div>
         @endif
     </flux:card>

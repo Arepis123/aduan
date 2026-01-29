@@ -38,8 +38,14 @@ class SubmitTicket extends Component
     #[Validate('required|in:low,medium,high,urgent')]
     public string $priority = 'medium';
 
-    #[Validate(['attachments.*' => 'file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png,gif'])]
+    #[Validate([
+        'attachments' => 'array|max:5',
+        'attachments.*' => 'file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png,gif'
+    ])]
     public array $attachments = [];
+
+    // Temporary property for new file uploads
+    public array $newAttachments = [];
 
     // Math Captcha
     public string $captchaQuestion = '';
@@ -52,6 +58,17 @@ class SubmitTicket extends Component
     {
         $this->mountWithSecurityProtection();
         $this->refreshCaptcha();
+    }
+
+    public function updatedNewAttachments(): void
+    {
+        // Merge new uploads with existing attachments
+        $this->attachments = array_merge($this->attachments, $this->newAttachments);
+        $this->newAttachments = []; // Clear temporary array
+
+        // Validate after merging
+        $this->validateOnly('attachments');
+        $this->validateOnly('attachments.*');
     }
 
     public function refreshCaptcha(): void

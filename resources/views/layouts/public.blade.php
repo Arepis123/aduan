@@ -18,9 +18,8 @@
     <body class="min-h-screen bg-white dark:bg-zinc-800 antialiased flex flex-col">
         <flux:header container class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
-
-            <flux:brand href="{{ route('home') }}" logo="https://fluxui.dev/img/demo/logo.png" name="Sistem Aduan CLAB" class="max-lg:hidden dark:hidden" />
-            <flux:brand href="{{ route('home') }}" logo="https://fluxui.dev/img/demo/dark-mode-logo.png" name="Sistem Aduan CLAB" class="max-lg:hidden! hidden dark:flex" />
+            <flux:brand href="{{ route('home') }}" logo="{{ asset('images/logo-clab.png') }}" name="Sistem Aduan CLAB" class="max-lg:hidden dark:hidden" />
+            <flux:brand href="{{ route('home') }}" logo="{{ asset('images/logo-clab.png') }}" name="Sistem Aduan CLAB" class="max-lg:hidden! hidden dark:flex" />
 
             <flux:navbar class="-mb-px max-lg:hidden">
                 <flux:navbar.item icon="home" href="{{ route('home') }}" :current="request()->routeIs('home')" wire:navigate>

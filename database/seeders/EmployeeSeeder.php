@@ -52,7 +52,7 @@ class EmployeeSeeder extends Seeder
 
             // Generate password from email (everything before @ + '1234')
             $emailUsername = explode('@', $email)[0];
-            $password = $emailUsername . '1234';
+            $password = $emailUsername . '@1234';
 
             // Create user
             $user = User::create([

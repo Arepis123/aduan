@@ -59,6 +59,11 @@ trait WithSecurityProtection
 
     protected function checkRateLimit(string $key, int $maxAttempts = 5, int $decayMinutes = 60): void
     {
+        // Skip rate limiting in local/testing environment
+        if (app()->environment('local', 'testing')) {
+            return;
+        }
+
         $rateLimitKey = $key . ':' . request()->ip();
 
         if (RateLimiter::tooManyAttempts($rateLimitKey, $maxAttempts)) {
