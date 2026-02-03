@@ -17,7 +17,7 @@
     </head>
     <body class="font-sans text-zinc-900 dark:text-zinc-100 antialiased">
         <div class="min-h-screen flex flex-col sm:justify-center sm:items-end items-center pt-6 sm:pt-0 sm:pr-16 relative">
-            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('images/background-2.jpg') }}');"></div>
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('images/background-4.jpg') }}');"></div>
 
 
             <!-- <div class="relative z-10 mb-4">

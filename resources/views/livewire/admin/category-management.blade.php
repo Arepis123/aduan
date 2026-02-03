@@ -1,6 +1,9 @@
 <div class="space-y-6">
     <div class="flex justify-between items-center">
-        <flux:heading size="xl">Category Management</flux:heading>
+        <div>
+            <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Category Management</h1>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Manage ticket categories for classification</p>
+        </div>         
         <flux:button wire:click="openModal" variant="primary" icon="plus">
             Add Category
         </flux:button>
@@ -84,7 +87,7 @@
 
                 <flux:field>
                     <flux:label>Department</flux:label>
-                    <flux:select wire:model="department_id">
+                    <flux:select variant="listbox" wire:model="department_id">
                         <flux:select.option value="">No Department</flux:select.option>
                         @foreach($departments as $dept)
                             <flux:select.option value="{{ $dept->id }}">{{ $dept->name }}</flux:select.option>

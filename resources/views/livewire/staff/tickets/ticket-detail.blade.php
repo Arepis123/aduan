@@ -95,6 +95,66 @@
                     </div>
                 </dl>
             </flux:card>
+
+            <!-- Conversation -->
+            <flux:card>
+                <flux:heading size="lg" class="mb-4">Conversation</flux:heading>
+
+                @if($ticket->replies->count() > 0)
+                    <div class="space-y-4 mb-6">
+                        @foreach($ticket->replies as $reply)
+                            <div @class([
+                                'p-4 rounded-lg',
+                                'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' => $reply->is_internal_note,
+                                'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800' => !$reply->is_client_reply && !$reply->is_internal_note,
+                                'bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700' => $reply->is_client_reply,
+                            ])>
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <flux:text class="font-medium">{{ $reply->author_name }}</flux:text>
+                                        @if($reply->is_internal_note)
+                                            <flux:badge size="sm" color="amber">Internal Note</flux:badge>
+                                        @elseif(!$reply->is_client_reply)
+                                            <flux:badge size="sm" color="indigo">Staff</flux:badge>
+                                        @else
+                                            <flux:badge size="sm" color="zinc">Requester</flux:badge>
+                                        @endif
+                                    </div>
+                                    <flux:text size="xs">{{ $reply->created_at->format('M d, Y h:i A') }}</flux:text>
+                                </div>
+                                <div class="text-zinc-700 dark:text-zinc-300">
+                                    {!! nl2br(e($reply->message)) !!}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <flux:text class="text-center py-4 mb-6">No replies yet.</flux:text>
+                @endif
+
+                <flux:separator class="my-4" />
+
+                <!-- Reply Form -->
+                <form wire:submit="submitReply" class="space-y-4">
+                    <flux:field>
+                        <flux:label>Add a Reply</flux:label>
+                        <flux:textarea
+                            wire:model="replyMessage"
+                            placeholder="Type your message here..."
+                            rows="4"
+                        />
+                        <flux:error name="replyMessage" />
+                    </flux:field>
+
+                    <div class="flex items-center justify-between">
+                        <flux:checkbox wire:model="isInternalNote" label="Internal note (not visible to requester)" />
+
+                        <flux:button type="submit" variant="primary" icon="paper-airplane">
+                            Send Reply
+                        </flux:button>
+                    </div>
+                </form>
+            </flux:card>
         </div>
 
         <!-- Sidebar -->
@@ -107,7 +167,7 @@
                     <flux:field>
                         <flux:label>Status</flux:label>
                         <div class="flex gap-2">
-                            <flux:select wire:model="newStatus" class="flex-1">
+                            <flux:select variant="listbox" wire:model="newStatus" class="flex-1">
                                 <flux:select.option value="open">Open</flux:select.option>
                                 <flux:select.option value="in_progress">In Progress</flux:select.option>
                                 <flux:select.option value="resolved">Resolved</flux:select.option>
@@ -120,7 +180,7 @@
                     <flux:field>
                         <flux:label>Priority</flux:label>
                         <div class="flex gap-2">
-                            <flux:select wire:model="newPriority" class="flex-1">
+                            <flux:select variant="listbox" wire:model="newPriority" class="flex-1">
                                 <flux:select.option value="low">Low</flux:select.option>
                                 <flux:select.option value="medium">Medium</flux:select.option>
                                 <flux:select.option value="high">High</flux:select.option>
@@ -139,7 +199,7 @@
                 <div class="space-y-4">
                     <flux:field>
                         <flux:label>Department</flux:label>
-                        <flux:select wire:model.live="assignDepartment">
+                        <flux:select variant="listbox" wire:model.live="assignDepartment">
                             <flux:select.option value="">Select Department</flux:select.option>
                             @foreach($departments as $department)
                                 <flux:select.option value="{{ $department->id }}">{{ $department->name }}</flux:select.option>
@@ -149,7 +209,7 @@
 
                     <flux:field>
                         <flux:label>Unit</flux:label>
-                        <flux:select wire:model="assignUnit" :disabled="!$assignDepartment">
+                        <flux:select variant="listbox" wire:model="assignUnit" :disabled="!$assignDepartment">
                             <flux:select.option value="">Select Unit</flux:select.option>
                             @foreach($units as $unit)
                                 <flux:select.option value="{{ $unit->id }}">{{ $unit->name }}</flux:select.option>

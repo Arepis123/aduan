@@ -4,9 +4,11 @@ namespace App\Livewire\Staff\Tickets;
 
 use App\Models\Department;
 use App\Models\Ticket;
+use App\Models\TicketReply;
 use App\Models\Unit;
 use App\Notifications\TicketAssigned;
 use App\Notifications\TicketClosed;
+use App\Notifications\TicketReplyFromStaff;
 use App\Notifications\TicketResolved;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Layout;
@@ -22,9 +24,13 @@ class TicketDetail extends Component
     public string $newStatus = '';
     public string $newPriority = '';
 
+    // Reply form
+    public string $replyMessage = '';
+    public bool $isInternalNote = false;
+
     public function mount(Ticket $ticket): void
     {
-        $this->ticket = $ticket->load(['department', 'unit', 'category', 'attachments']);
+        $this->ticket = $ticket->load(['department', 'unit', 'category', 'attachments', 'replies.user']);
         $this->assignDepartment = $ticket->department_id;
         $this->assignUnit = $ticket->unit_id;
         $this->newStatus = $ticket->status;
@@ -153,6 +159,41 @@ class TicketDetail extends Component
     {
         $this->ticket->update(['priority' => $this->newPriority]);
         $this->ticket->refresh();
+    }
+
+    public function submitReply(): void
+    {
+        $this->validate([
+            'replyMessage' => 'required|string|min:10',
+        ]);
+
+        $reply = TicketReply::create([
+            'ticket_id' => $this->ticket->id,
+            'user_id' => auth()->id(),
+            'message' => $this->replyMessage,
+            'is_client_reply' => false,
+            'is_internal_note' => $this->isInternalNote,
+        ]);
+
+        // Send email notification to requester (only for non-internal notes)
+        if (!$this->isInternalNote) {
+            $this->sendReplyNotification($reply);
+        }
+
+        $this->replyMessage = '';
+        $this->isInternalNote = false;
+        $this->ticket->refresh();
+        $this->ticket->load('replies.user');
+    }
+
+    protected function sendReplyNotification(TicketReply $reply): void
+    {
+        $email = $this->ticket->requester_email;
+
+        if ($email) {
+            Notification::route('mail', $email)
+                ->notify(new TicketReplyFromStaff($this->ticket, $reply));
+        }
     }
 
     public function render()

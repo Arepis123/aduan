@@ -4,7 +4,7 @@
             <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Dashboard</h1>
             <p class="text-sm text-zinc-600 dark:text-zinc-400">Overview of Aduan System</p>
         </div>
-        <div class="text-sm text-zinc-600 dark:text-zinc-400">
+        <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
             {{ now()->format('l, F j, Y') }}
         </div>
     </div>    

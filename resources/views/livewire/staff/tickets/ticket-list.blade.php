@@ -1,5 +1,8 @@
 <div class="space-y-6">
-    <flux:heading size="xl">Tickets</flux:heading>
+    <div>
+        <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Tickets</h1>
+        <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">View and manage all submitted tickets</p>
+    </div>   
 
     <!-- Filters -->
     <flux:card class="!p-4">
@@ -11,14 +14,14 @@
                     icon="magnifying-glass"
                 />
             </div>
-            <flux:select wire:model.live="status" placeholder="All Status">
+            <flux:select variant="listbox" wire:model.live="status" placeholder="All Status">
                 <flux:select.option value="">All Status</flux:select.option>
                 <flux:select.option value="open">Open</flux:select.option>
                 <flux:select.option value="in_progress">In Progress</flux:select.option>
                 <flux:select.option value="resolved">Resolved</flux:select.option>
                 <flux:select.option value="closed">Closed</flux:select.option>
             </flux:select>
-            <flux:select wire:model.live="priority" placeholder="All Priority">
+            <flux:select variant="listbox" wire:model.live="priority" placeholder="All Priority">
                 <flux:select.option value="">All Priority</flux:select.option>
                 <flux:select.option value="low">Low</flux:select.option>
                 <flux:select.option value="medium">Medium</flux:select.option>
@@ -26,14 +29,14 @@
                 <flux:select.option value="urgent">Urgent</flux:select.option>
             </flux:select>
             @if($isAdmin)
-                <flux:select wire:model.live="department_id" placeholder="All Departments">
+                <flux:select variant="listbox" wire:model.live="department_id" placeholder="All Departments">
                     <flux:select.option value="">All Departments</flux:select.option>
                     @foreach($departments as $dept)
                         <flux:select.option value="{{ $dept->id }}">{{ $dept->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
             @endif
-            <flux:select wire:model.live="type" placeholder="All Types">
+            <flux:select variant="listbox" wire:model.live="type" placeholder="All Types">
                 <flux:select.option value="">All Types</flux:select.option>
                 <flux:select.option value="external">Public</flux:select.option>
                 <flux:select.option value="internal">Internal</flux:select.option>

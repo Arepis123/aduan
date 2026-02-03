@@ -1,6 +1,9 @@
 <div class="space-y-6">
     <div class="flex justify-between items-center">
-        <flux:heading size="xl">Sector Management</flux:heading>
+        <div>
+            <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Sector Management</h1>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Manage sectors and their persons in charge</p>
+        </div>         
         <flux:button wire:click="openModal" variant="primary" icon="plus">
             Add Sector
         </flux:button>

@@ -40,6 +40,8 @@ class UserManagement extends Component
     #[Validate('nullable|string|max:20')]
     public ?string $phone = '';
 
+    public bool $is_active = true;
+
     public string $search = '';
 
     public function openModal(?User $user = null): void
@@ -51,6 +53,7 @@ class UserManagement extends Component
             $this->name = $user->name;
             $this->email = $user->email;
             $this->role = $user->role;
+            $this->is_active = $user->is_active;
             $this->sector_id = $user->sector_id;
             $this->department_id = $user->department_id;
             $this->unit_id = $user->unit_id;
@@ -62,6 +65,7 @@ class UserManagement extends Component
             $this->email = '';
             $this->password = '';
             $this->role = 'agent';
+            $this->is_active = true;
             $this->sector_id = null;
             $this->department_id = null;
             $this->unit_id = null;
@@ -112,6 +116,7 @@ class UserManagement extends Component
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
+            'is_active' => $this->is_active,
             'sector_id' => $this->sector_id,
             'department_id' => $this->department_id,
             'unit_id' => $this->unit_id,

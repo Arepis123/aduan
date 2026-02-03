@@ -4,8 +4,10 @@ namespace App\Livewire\Pages;
 
 use App\Models\Ticket;
 use App\Models\TicketReply;
+use App\Notifications\TicketReplyFromRequester;
 use App\Services\MathCaptchaService;
 use App\Traits\WithSecurityProtection;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -82,7 +84,7 @@ class TicketStatus extends Component
         // Close the modal
         $this->modal('reply-captcha-modal')->close();
 
-        TicketReply::create([
+        $reply = TicketReply::create([
             'ticket_id' => $this->ticket->id,
             'user_id' => null,
             'message' => $this->reply,
@@ -95,12 +97,50 @@ class TicketStatus extends Component
             $this->ticket->update(['status' => 'open']);
         }
 
+        // Send email notification to assigned PICs
+        $this->sendReplyNotification($reply);
+
         $this->reply = '';
         $this->captchaAnswer = '';
         $this->showReplyForm = false;
         $this->refreshCaptcha();
         $this->ticket->refresh();
         $this->ticket->load('publicReplies.user');
+    }
+
+    protected function sendReplyNotification(TicketReply $reply): void
+    {
+        $this->ticket->load(['unit.department.sector', 'department.sector']);
+
+        $toEmails = collect();
+        $ccEmails = collect();
+
+        // Get TO emails from unit if assigned
+        if ($this->ticket->unit_id && $this->ticket->unit?->emails) {
+            $toEmails = $toEmails->merge($this->ticket->unit->emails);
+
+            if ($this->ticket->unit->department?->emails) {
+                $ccEmails = $ccEmails->merge($this->ticket->unit->department->emails);
+            }
+            if ($this->ticket->unit->department?->sector?->emails) {
+                $ccEmails = $ccEmails->merge($this->ticket->unit->department->sector->emails);
+            }
+        }
+        // Otherwise get TO emails from department
+        elseif ($this->ticket->department_id && $this->ticket->department?->emails) {
+            $toEmails = $toEmails->merge($this->ticket->department->emails);
+
+            if ($this->ticket->department->sector?->emails) {
+                $ccEmails = $ccEmails->merge($this->ticket->department->sector->emails);
+            }
+        }
+
+        $ccEmails = $ccEmails->unique()->diff($toEmails)->values();
+
+        if ($toEmails->isNotEmpty()) {
+            Notification::route('mail', $toEmails->toArray())
+                ->notify(new TicketReplyFromRequester($this->ticket, $reply, $ccEmails->toArray()));
+        }
     }
 
     public function render()

@@ -1,6 +1,9 @@
 <div class="space-y-6">
     <div class="flex justify-between items-center">
-        <flux:heading size="xl">Department Management</flux:heading>
+        <div>
+            <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Department Management</h1>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Manage departments under sectors</p>
+        </div>          
         <flux:button wire:click="openModal" variant="primary" icon="plus">
             Add Department
         </flux:button>
@@ -98,7 +101,7 @@
             <form wire:submit="save" class="space-y-4">
                 <flux:field>
                     <flux:label>Sector</flux:label>
-                    <flux:select wire:model="sector_id" placeholder="Select a sector (optional)">
+                    <flux:select variant="listbox" wire:model="sector_id" placeholder="Select a sector (optional)">
                         <flux:select.option value="">No Sector</flux:select.option>
                         @foreach($sectors as $sector)
                             <flux:select.option value="{{ $sector->id }}">{{ $sector->name }}</flux:select.option>

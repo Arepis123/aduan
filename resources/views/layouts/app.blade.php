@@ -7,6 +7,14 @@
 
         <title>{{ config('app.name', 'Sistem Aduan CLAB') }}</title>
 
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{{ asset('images/favicon-96x96.png') }}" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicon.svg') }}" />
+        <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}" />
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/apple-touch-icon.png') }}" />
+        <meta name="apple-mobile-web-app-title" content="Aduan" />
+        <link rel="manifest" href="{{ asset('images/site.webmanifest') }}" />        
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=inter:400,500,600&display=swap" rel="stylesheet" />
@@ -67,6 +75,9 @@
             <flux:spacer />
 
             <flux:sidebar.nav>
+                <flux:sidebar.item href="{{ route('staff.settings') }}" wire:navigate icon="cog-6-tooth">
+                    Settings
+                </flux:sidebar.item>
                 <flux:sidebar.item href="{{ route('home') }}" wire:navigate icon="globe-alt">
                     Public Site
                 </flux:sidebar.item>
@@ -92,18 +103,6 @@
                             </div>
                         </div>
                     </flux:menu.radio.group>
-
-                    <flux:menu.separator />
-
-                    <flux:menu.item href="{{ route('profile') }}" icon="user" wire:navigate>Profile</flux:menu.item>
-
-                    <flux:menu.separator />
-
-                    <flux:appearance as="menu">
-                        <x-slot:light icon="sun">Light</x-slot:light>
-                        <x-slot:dark icon="moon">Dark</x-slot:dark>
-                        <x-slot:system icon="computer-desktop">System</x-slot:system>
-                    </flux:appearance>
 
                     <flux:menu.separator />
 

@@ -26,7 +26,7 @@
         <!-- Ticket Form -->
         <flux:card>
             <flux:heading size="xl" class="mb-2">Submit Internal Ticket</flux:heading>
-            <flux:subheading class="mb-8">Submit a complaint or enquiry as a staff member.</flux:subheading>
+            <flux:subheading class="mb-8">Submit a complaint or enquiry as a staff member.</flux:subheading>            
 
             <form wire:submit="submit" class="space-y-6">
                 <!-- Requester Information (Auto-filled) -->
@@ -74,7 +74,7 @@
 
                         <flux:field>
                             <flux:label>Priority</flux:label>
-                            <flux:select wire:model="priority">
+                            <flux:select variant="listbox" wire:model="priority">
                                 <flux:select.option value="low">Low - General enquiry</flux:select.option>
                                 <flux:select.option value="medium">Medium - Standard issue</flux:select.option>
                                 <flux:select.option value="high">High - Urgent matter</flux:select.option>
