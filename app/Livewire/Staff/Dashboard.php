@@ -46,9 +46,17 @@ class Dashboard extends Component
             ->limit(10)
             ->get();
 
+        $slaTickets = (clone $ticketQuery)
+            ->whereIn('status', ['open', 'in_progress', 'pending'])
+            ->whereNotNull('assigned_at')
+            ->with(['department', 'unit', 'assignedAgent'])
+            ->orderBy('assigned_at', 'asc')
+            ->get();
+
         return view('livewire.staff.dashboard', [
             'stats' => $stats,
             'recentTickets' => $recentTickets,
+            'slaTickets' => $slaTickets,
             'isAdmin' => $isAdmin,
         ]);
     }

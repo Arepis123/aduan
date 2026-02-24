@@ -28,6 +28,7 @@ class Ticket extends Model
         'assigned_at',
         'resolved_at',
         'closed_at',
+        'closing_remark',
     ];
 
     protected function casts(): array

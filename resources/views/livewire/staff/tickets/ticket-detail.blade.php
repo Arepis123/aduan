@@ -168,26 +168,43 @@
                         <flux:label>Status</flux:label>
                         <div class="flex gap-2">
                             <flux:select variant="listbox" wire:model="newStatus" class="flex-1">
-                                <flux:select.option value="open">Open</flux:select.option>
+                                @if(auth()->user()->isAdmin())
+                                    <flux:select.option value="open">Open</flux:select.option>
+                                @endif
                                 <flux:select.option value="in_progress">In Progress</flux:select.option>
                                 <flux:select.option value="resolved">Resolved</flux:select.option>
-                                <flux:select.option value="closed">Closed</flux:select.option>
+                                @if(auth()->user()->isAdmin())
+                                    <flux:select.option value="closed">Closed</flux:select.option>
+                                @endif
                             </flux:select>
                             <flux:button wire:click="updateStatus" size="sm">Update</flux:button>
                         </div>
                     </flux:field>
 
+                    @if($ticket->closing_remark)
+                        <div class="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+                            <flux:text size="sm" class="text-zinc-500 mb-1">Closing Remark</flux:text>
+                            <flux:text class="font-medium">{{ $ticket->closing_remark }}</flux:text>
+                        </div>
+                    @endif
+
                     <flux:field>
                         <flux:label>Priority</flux:label>
-                        <div class="flex gap-2">
-                            <flux:select variant="listbox" wire:model="newPriority" class="flex-1">
-                                <flux:select.option value="low">Low</flux:select.option>
-                                <flux:select.option value="medium">Medium</flux:select.option>
-                                <flux:select.option value="high">High</flux:select.option>
-                                <flux:select.option value="urgent">Urgent</flux:select.option>
-                            </flux:select>
-                            <flux:button wire:click="updatePriority" size="sm">Update</flux:button>
-                        </div>
+                        @if(auth()->user()->isAdmin())
+                            <div class="flex gap-2">
+                                <flux:select variant="listbox" wire:model="newPriority" class="flex-1">
+                                    <flux:select.option value="low">Low</flux:select.option>
+                                    <flux:select.option value="medium">Medium</flux:select.option>
+                                    <flux:select.option value="high">High</flux:select.option>
+                                    <flux:select.option value="urgent">Urgent</flux:select.option>
+                                </flux:select>
+                                <flux:button wire:click="updatePriority" size="sm">Update</flux:button>
+                            </div>
+                        @else
+                            <flux:badge :color="match($ticket->priority) { 'urgent' => 'red', 'high' => 'orange', 'medium' => 'yellow', 'low' => 'green', default => 'zinc' }" size="sm">
+                                {{ ucfirst($ticket->priority) }}
+                            </flux:badge>
+                        @endif
                     </flux:field>
                 </div>
             </flux:card>
@@ -276,4 +293,54 @@
             </flux:card>
         </div>
     </div>
+
+    <!-- Close Ticket Modal -->
+    <flux:modal wire:model="showCloseModal" class="md:w-96 space-y-6">
+        <div>
+            <flux:heading size="lg">Close Ticket</flux:heading>
+            <flux:text class="mt-1">Please provide a closing remark before closing this ticket.</flux:text>
+        </div>
+
+        <form wire:submit="closeTicket" class="space-y-4">
+            <flux:field>
+                <flux:label>Closing Remark <span class="text-red-500">*</span></flux:label>
+                <flux:textarea
+                    wire:model="closingRemark"
+                    placeholder="Enter your closing remark..."
+                    rows="4"
+                />
+                <flux:error name="closingRemark" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>Attachments (Optional)</flux:label>
+                <input
+                    type="file"
+                    wire:model="newClosingAttachments"
+                    multiple
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
+                    class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-700 dark:file:text-zinc-300"
+                />
+                <flux:description>Max 5 files, 10MB each (PDF, DOC, DOCX, JPG, PNG, GIF)</flux:description>
+                <flux:error name="closingAttachments" />
+                <flux:error name="closingAttachments.*" />
+            </flux:field>
+
+            @if(count($closingAttachments) > 0)
+                <div class="space-y-2">
+                    @foreach($closingAttachments as $index => $attachment)
+                        <div class="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                            <flux:text size="sm" class="truncate">{{ $attachment->getClientOriginalName() }}</flux:text>
+                            <flux:button wire:click="removeClosingAttachment({{ $index }})" variant="ghost" size="sm" icon="x-mark" />
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="flex justify-end gap-2">
+                <flux:button wire:click="cancelClose" variant="ghost">Cancel</flux:button>
+                <flux:button type="submit" variant="danger">Close Ticket</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 </div>
