@@ -78,9 +78,9 @@
                 <flux:sidebar.item href="{{ route('staff.settings') }}" wire:navigate icon="cog-6-tooth">
                     Settings
                 </flux:sidebar.item>
-                <flux:sidebar.item href="{{ route('home') }}" wire:navigate icon="globe-alt">
+                {{-- <flux:sidebar.item href="{{ route('home') }}" wire:navigate icon="globe-alt">
                     Public Site
-                </flux:sidebar.item>
+                </flux:sidebar.item> --}}
             </flux:sidebar.nav>
 
             <!-- User Menu -->

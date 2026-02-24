@@ -17,12 +17,15 @@ use App\Livewire\Admin\UnitManagement;
 use App\Livewire\Admin\UserManagement;
 use Illuminate\Support\Facades\Route;
 
-// Public routes
-Route::get('/', Home::class)->name('home');
-Route::get('/submit', SubmitTicket::class)->name('submit');
-Route::get('/check', CheckStatus::class)->name('check');
-Route::get('/ticket/{ticketNumber}', TicketStatus::class)->name('ticket.status');
-Route::get('/ticket/{ticketNumber}/attachment/{attachment}', [AttachmentController::class, 'public'])->name('attachment.public');
+// Public routes (hidden - staff complaint focus)
+// Route::get('/', Home::class)->name('home');
+// Route::get('/submit', SubmitTicket::class)->name('submit');
+// Route::get('/check', CheckStatus::class)->name('check');
+// Route::get('/ticket/{ticketNumber}', TicketStatus::class)->name('ticket.status');
+// Route::get('/ticket/{ticketNumber}/attachment/{attachment}', [AttachmentController::class, 'public'])->name('attachment.public');
+
+// Landing page - redirect to staff login
+Route::get('/', fn() => redirect()->route('login'))->name('home');
 
 // Staff routes
 Route::middleware(['auth'])->prefix('staff')->name('staff.')->group(function () {
