@@ -86,7 +86,7 @@
                             </flux:badge>
                         </flux:table.cell>
                         <flux:table.cell>
-                            {{ $ticket->assignedAgent?->name ?? $ticket->unit?->name ?? $ticket->department?->name ?? 'Unassigned' }}
+                            {{ $ticket->assignedAgent?->name ?? $ticket->department?->name ?? 'Unassigned' }}
                         </flux:table.cell>
                         <flux:table.cell>
                             {{ $ticket->assigned_at->format('d M Y') }}

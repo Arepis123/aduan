@@ -17,7 +17,6 @@
                 <flux:table.column>Name</flux:table.column>
                 <flux:table.column>Sector</flux:table.column>
                 <flux:table.column>Person(s) In Charge</flux:table.column>
-                <flux:table.column>Units</flux:table.column>
                 <flux:table.column>Users</flux:table.column>
                 <flux:table.column>Tickets</flux:table.column>
                 <flux:table.column>Status</flux:table.column>
@@ -57,9 +56,6 @@
                             @endif
                         </flux:table.cell>
                         <flux:table.cell>
-                            {{ $department->units_count }}
-                        </flux:table.cell>
-                        <flux:table.cell>
                             {{ $department->users_count }}
                         </flux:table.cell>
                         <flux:table.cell>
@@ -82,7 +78,7 @@
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="9" class="text-center py-8">
+                        <flux:table.cell colspan="8" class="text-center py-8">
                             <flux:text>No departments found. Click "Add Department" to create one.</flux:text>
                         </flux:table.cell>
                     </flux:table.row>

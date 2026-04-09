@@ -37,11 +37,6 @@ class Department extends Model
         return $this->hasMany(User::class);
     }
 
-    public function units(): HasMany
-    {
-        return $this->hasMany(Unit::class);
-    }
-
     public function categories(): HasMany
     {
         return $this->hasMany(Category::class);

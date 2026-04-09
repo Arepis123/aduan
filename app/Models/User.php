@@ -21,7 +21,6 @@ class User extends Authenticatable
         'is_active',
         'sector_id',
         'department_id',
-        'unit_id',
         'phone',
     ];
 
@@ -54,11 +53,6 @@ class User extends Authenticatable
         return $this->belongsTo(Department::class);
     }
 
-    public function unit(): BelongsTo
-    {
-        return $this->belongsTo(Unit::class);
-    }
-
     public function assignedTickets(): HasMany
     {
         return $this->hasMany(Ticket::class, 'user_id');
@@ -69,8 +63,8 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
-    public function isAgent(): bool
+    public function isStaff(): bool
     {
-        return $this->role === 'agent';
+        return $this->role === 'staff';
     }
 }

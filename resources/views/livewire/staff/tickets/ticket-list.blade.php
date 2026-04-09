@@ -36,13 +36,8 @@
                     @endforeach
                 </flux:select>
             @endif
-            <flux:select variant="listbox" wire:model.live="type" placeholder="All Types">
-                <flux:select.option value="">All Types</flux:select.option>
-                <flux:select.option value="external">Public</flux:select.option>
-                <flux:select.option value="internal">Internal</flux:select.option>
-            </flux:select>
         </div>
-        @if($search || $status || $priority || $department_id || $type)
+        @if($search || $status || $priority || $department_id)
             <div class="mt-3">
                 <flux:button wire:click="clearFilters" variant="ghost" size="sm">
                     Clear all filters
@@ -61,7 +56,6 @@
                 <flux:table.column>Subject</flux:table.column>
                 <flux:table.column>Requester</flux:table.column>
                 <flux:table.column>Department</flux:table.column>
-                <flux:table.column>Type</flux:table.column>
                 <flux:table.column>Status</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'priority'" :direction="$sortDirection" wire:click="sortBy('priority')">
                     Priority
@@ -88,14 +82,6 @@
                         </flux:table.cell>
                         <flux:table.cell>
                             {{ $ticket->department?->name ?? '-' }}
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            <flux:badge
-                                size="sm"
-                                :color="$ticket->requester_type === 'internal' ? 'violet' : 'sky'"
-                            >
-                                {{ $ticket->requester_type === 'internal' ? 'Internal' : 'Public' }}
-                            </flux:badge>
                         </flux:table.cell>
                         <flux:table.cell>
                             <flux:badge
@@ -131,7 +117,7 @@
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="8" class="text-center py-8">
+                        <flux:table.cell colspan="7" class="text-center py-8">
                             <flux:text>No tickets found.</flux:text>
                         </flux:table.cell>
                     </flux:table.row>

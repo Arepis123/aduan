@@ -29,7 +29,6 @@ class ClearDataSeeder extends Seeder
             'ticket_replies',
             'tickets',
             'categories',
-            'units',
             'departments',
             'sectors',
             'sessions',

@@ -25,7 +25,7 @@ class TicketAssigned extends Notification
         $mail = (new MailMessage)
             ->subject("[{$this->ticket->ticket_number}] New Ticket Assigned: {$this->ticket->subject}")
             ->greeting('New Ticket Assigned')
-            ->line("A new ticket has been assigned to your department/unit.")
+            ->line("A new ticket has been assigned to your department.")
             ->line("**Ticket Number:** {$this->ticket->ticket_number}")
             ->line("**Subject:** {$this->ticket->subject}")
             ->line("**Priority:** " . ucfirst($this->ticket->priority))

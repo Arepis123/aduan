@@ -15,7 +15,6 @@ class Category extends Model
         'name',
         'description',
         'department_id',
-        'unit_id',
         'is_active',
     ];
 
@@ -29,11 +28,6 @@ class Category extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
-    }
-
-    public function unit(): BelongsTo
-    {
-        return $this->belongsTo(Unit::class);
     }
 
     public function tickets(): HasMany

@@ -59,10 +59,7 @@
                                 @if($user->department)
                                     <flux:badge size="sm" color="indigo">{{ $user->department->name }}</flux:badge>
                                 @endif
-                                @if($user->unit)
-                                    <flux:badge size="sm" color="sky">{{ $user->unit->name }}</flux:badge>
-                                @endif
-                                @if(!$user->sector && !$user->department && !$user->unit)
+                                @if(!$user->sector && !$user->department)
                                     <flux:text size="sm" class="text-zinc-400">-</flux:text>
                                 @endif
                             </div>
@@ -132,7 +129,7 @@
                 <flux:field>
                     <flux:label badge="Required">Role</flux:label>
                     <flux:select variant="listbox" wire:model="role">
-                        <flux:select.option value="agent">Agent</flux:select.option>
+                        <flux:select.option value="staff">Staff</flux:select.option>
                         <flux:select.option value="admin">Admin</flux:select.option>
                     </flux:select>
                     <flux:error name="role" />
@@ -162,19 +159,6 @@
                     </flux:select>
                     @if(!$sector_id)
                         <flux:description>Select a sector first</flux:description>
-                    @endif
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Unit</flux:label>
-                    <flux:select variant="listbox" wire:model="unit_id" :disabled="!$department_id">
-                        <flux:select.option value="">No Unit</flux:select.option>
-                        @foreach($units as $unit)
-                            <flux:select.option value="{{ $unit->id }}">{{ $unit->name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    @if(!$department_id)
-                        <flux:description>Select a department first</flux:description>
                     @endif
                 </flux:field>
 

@@ -45,7 +45,7 @@ new #[Layout('layouts.guest')] class extends Component
         <!-- Password -->
         <flux:field>
             <flux:label>Password</flux:label>
-            <flux:input wire:model="form.password" type="password" placeholder="Enter your password" autocomplete="current-password" />
+            <flux:input wire:model="form.password" type="password" placeholder="Enter your password" autocomplete="current-password" viewable />
             <flux:error name="form.password" />
         </flux:field>
 

@@ -16,7 +16,6 @@
                 <flux:table.column>No</flux:table.column>
                 <flux:table.column>Name</flux:table.column>
                 <flux:table.column>Description</flux:table.column>
-                <flux:table.column>Department</flux:table.column>
                 <flux:table.column>Tickets</flux:table.column>
                 <flux:table.column>Status</flux:table.column>
                 <flux:table.column>Actions</flux:table.column>
@@ -33,9 +32,6 @@
                         </flux:table.cell>
                         <flux:table.cell class="max-w-xs truncate">
                             {{ $category->description ?? '-' }}
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            {{ $category->department?->name ?? '-' }}
                         </flux:table.cell>
                         <flux:table.cell>
                             {{ $category->tickets_count }}
@@ -83,16 +79,6 @@
                 <flux:field>
                     <flux:label>Description</flux:label>
                     <flux:textarea wire:model="description" placeholder="Enter category description" rows="3" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Department</flux:label>
-                    <flux:select variant="listbox" wire:model="department_id">
-                        <flux:select.option value="">No Department</flux:select.option>
-                        @foreach($departments as $dept)
-                            <flux:select.option value="{{ $dept->id }}">{{ $dept->name }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
                 </flux:field>
 
                 <flux:checkbox wire:model="is_active" label="Active" />

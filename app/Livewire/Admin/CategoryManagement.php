@@ -3,7 +3,6 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Category;
-use App\Models\Department;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
@@ -22,9 +21,6 @@ class CategoryManagement extends Component
     #[Validate('nullable|string')]
     public string $description = '';
 
-    #[Validate('nullable|exists:departments,id')]
-    public ?int $department_id = null;
-
     public bool $is_active = true;
 
     public function openModal(?Category $category = null): void
@@ -35,13 +31,11 @@ class CategoryManagement extends Component
             $this->editingCategory = $category;
             $this->name = $category->name;
             $this->description = $category->description ?? '';
-            $this->department_id = $category->department_id;
             $this->is_active = $category->is_active;
         } else {
             $this->editingCategory = null;
             $this->name = '';
             $this->description = '';
-            $this->department_id = null;
             $this->is_active = true;
         }
 
@@ -61,7 +55,6 @@ class CategoryManagement extends Component
         $data = [
             'name' => $this->name,
             'description' => $this->description ?: null,
-            'department_id' => $this->department_id,
             'is_active' => $this->is_active,
         ];
 
@@ -82,8 +75,7 @@ class CategoryManagement extends Component
     public function render()
     {
         return view('livewire.admin.category-management', [
-            'categories' => Category::with('department')->withCount('tickets')->orderBy('name')->get(),
-            'departments' => Department::active()->get(),
+            'categories' => Category::withCount('tickets')->orderBy('name')->get(),
         ]);
     }
 }

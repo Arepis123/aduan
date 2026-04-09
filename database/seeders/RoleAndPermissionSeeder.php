@@ -44,7 +44,7 @@ class RoleAndPermissionSeeder extends Seeder
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
         $adminRole->givePermissionTo(Permission::all());
 
-        $agentRole = Role::firstOrCreate(['name' => 'agent']);
+        $agentRole = Role::firstOrCreate(['name' => 'staff']);
         $agentRole->givePermissionTo([
             'tickets.view_department',
             'tickets.reply',

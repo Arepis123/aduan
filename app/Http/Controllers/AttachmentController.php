@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Ticket;
 use App\Models\TicketAttachment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -10,21 +9,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AttachmentController extends Controller
 {
-    /**
-     * Download/view attachment for public users (via ticket number)
-     */
-    public function public(Request $request, string $ticketNumber, TicketAttachment $attachment): StreamedResponse
-    {
-        // Verify the attachment belongs to this ticket
-        $ticket = Ticket::where('ticket_number', $ticketNumber)->firstOrFail();
-
-        if ($attachment->ticket_id !== $ticket->id) {
-            abort(403, 'Unauthorized access to attachment.');
-        }
-
-        return $this->serveFile($attachment);
-    }
-
     /**
      * Download/view attachment for staff (authenticated)
      */

@@ -4,12 +4,11 @@ namespace App\Livewire\Staff\Tickets;
 
 use App\Models\Department;
 use App\Models\Ticket;
+use App\Models\User;
 use App\Models\TicketAttachment;
-use App\Models\TicketReply;
-use App\Models\Unit;
+use App\Models\TicketLog;
 use App\Notifications\TicketAssigned;
 use App\Notifications\TicketClosed;
-use App\Notifications\TicketReplyFromStaff;
 use App\Notifications\TicketResolved;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
@@ -24,14 +23,15 @@ class TicketDetail extends Component
 
     public Ticket $ticket;
 
-    public ?int $assignDepartment = null;
-    public ?int $assignUnit = null;
+    public array $assignUserIds = [];
+    public ?int $ccDepartmentId = null;
+    public ?int $ccSectorId = null;
+    public bool $showUserModal = false;
     public string $newStatus = '';
     public string $newPriority = '';
 
-    // Reply form
-    public string $replyMessage = '';
-    public bool $isInternalNote = false;
+    // Manual log form
+    public string $logNote = '';
 
     // Close ticket modal
     public bool $showCloseModal = false;
@@ -41,9 +41,10 @@ class TicketDetail extends Component
 
     public function mount(Ticket $ticket): void
     {
-        $this->ticket = $ticket->load(['department', 'unit', 'category', 'attachments', 'replies.user']);
-        $this->assignDepartment = $ticket->department_id;
-        $this->assignUnit = $ticket->unit_id;
+        $this->ticket = $ticket->load(['sector', 'department', 'category', 'attachments', 'logs.user', 'assignees']);
+        $this->assignUserIds = $ticket->assignees->pluck('id')->toArray();
+        $this->ccDepartmentId = $ticket->department_id;
+        $this->ccSectorId = $ticket->sector_id;
         $this->newStatus = $ticket->status;
         $this->newPriority = $ticket->priority;
     }
@@ -53,84 +54,77 @@ class TicketDetail extends Component
         return $this->ticket->ticket_number . ' - Sistem Aduan CLAB';
     }
 
+    public function updatedCcDepartmentId(?int $value): void
+    {
+        $this->ccSectorId = $value
+            ? Department::find($value)?->sector_id
+            : null;
+    }
+
     public function updateAssignment(): void
     {
-        $hasAssignment = $this->assignDepartment || $this->assignUnit;
+        $hasAssignment = !empty($this->assignUserIds);
         $isFirstAssignment = !$this->ticket->assigned_at && $hasAssignment;
         $isOpenStatus = $this->ticket->status === 'open';
 
-        $data = [
-            'department_id' => $this->assignDepartment ?: null,
-            'unit_id' => $this->assignUnit ?: null,
-        ];
+        $this->ticket->update([
+            'department_id' => $this->ccDepartmentId ?: null,
+            'sector_id'     => $this->ccSectorId ?: null,
+        ]);
 
-        // Set assigned_at on first assignment
+        $this->ticket->assignees()->sync($this->assignUserIds);
+
         if ($isFirstAssignment) {
-            $data['assigned_at'] = now();
+            $this->ticket->update(['assigned_at' => now()]);
         }
 
-        // Auto-change status to "in_progress" when assigning from "open" status
         if ($isOpenStatus && $hasAssignment) {
-            $data['status'] = 'in_progress';
+            $this->ticket->update(['status' => 'in_progress']);
             $this->newStatus = 'in_progress';
         }
 
-        $this->ticket->update($data);
         $this->ticket->refresh();
-        $this->ticket->load(['department', 'unit']);
+        $this->ticket->load(['sector', 'department', 'assignees']);
 
-        // Send email notification
+        $assigneeNames = $this->ticket->assignees->pluck('name')->join(', ') ?: 'None';
+        $dept          = $this->ticket->department?->name ?? 'N/A';
+        $sector        = $this->ticket->sector?->name ?? 'N/A';
+        $by            = Auth::user()->name;
+
+        $this->addSystemLog('assigned', "Ticket assigned to: {$assigneeNames}. CC — Department: {$dept}, Sector: {$sector}. By {$by}.");
+
+        if ($isOpenStatus && $hasAssignment) {
+            $this->addSystemLog('status_changed', "Status automatically changed to In Progress upon assignment by {$by}.");
+        }
+
         if ($hasAssignment) {
             $this->sendAssignmentNotification();
         }
+
+        $this->refreshLogs();
     }
 
     protected function sendAssignmentNotification(): void
     {
-        $toEmails = collect();
+        $this->ticket->load(['assignees', 'department', 'sector']);
+
+        $toEmails = $this->ticket->assignees->pluck('email')->filter()->values();
         $ccEmails = collect();
 
-        // Load relationships for email collection
-        $this->ticket->load(['unit.department.sector', 'department.sector']);
-
-        // Get TO emails from unit if assigned
-        if ($this->ticket->unit_id && $this->ticket->unit?->emails) {
-            $toEmails = $toEmails->merge($this->ticket->unit->emails);
-
-            // CC to Department PIC
-            if ($this->ticket->unit->department?->emails) {
-                $ccEmails = $ccEmails->merge($this->ticket->unit->department->emails);
-            }
-
-            // CC to Sector PIC
-            if ($this->ticket->unit->department?->sector?->emails) {
-                $ccEmails = $ccEmails->merge($this->ticket->unit->department->sector->emails);
-            }
-        }
-        // Otherwise get TO emails from department
-        elseif ($this->ticket->department_id && $this->ticket->department?->emails) {
-            $toEmails = $toEmails->merge($this->ticket->department->emails);
-
-            // CC to Sector PIC
-            if ($this->ticket->department->sector?->emails) {
-                $ccEmails = $ccEmails->merge($this->ticket->department->sector->emails);
-            }
+        if ($this->ticket->department?->emails) {
+            $ccEmails = $ccEmails->merge($this->ticket->department->emails);
         }
 
-        // Remove duplicates and ensure CC doesn't include TO emails
+        if ($this->ticket->sector?->emails) {
+            $ccEmails = $ccEmails->merge($this->ticket->sector->emails);
+        }
+
         $ccEmails = $ccEmails->unique()->diff($toEmails)->values();
 
-        // Send notification to collected emails
         if ($toEmails->isNotEmpty()) {
             Notification::route('mail', $toEmails->toArray())
                 ->notify(new TicketAssigned($this->ticket, $ccEmails->toArray()));
         }
-    }
-
-    public function updatedAssignDepartment($value): void
-    {
-        // Reset unit when department changes
-        $this->assignUnit = null;
     }
 
     public function updateStatus(): void
@@ -139,7 +133,6 @@ class TicketDetail extends Component
             return;
         }
 
-        // If closing, open the modal instead of directly updating
         if ($this->newStatus === 'closed') {
             $this->showCloseModal = true;
             return;
@@ -155,10 +148,16 @@ class TicketDetail extends Component
         $this->ticket->update($data);
         $this->ticket->refresh();
 
-        // Send notification to requester on status change
         if ($oldStatus !== $this->newStatus) {
+            $oldLabel = ucfirst(str_replace('_', ' ', $oldStatus));
+            $newLabel = ucfirst(str_replace('_', ' ', $this->newStatus));
+            $by = Auth::user()->name;
+
+            $this->addSystemLog('status_changed', "Status changed from {$oldLabel} to {$newLabel} by {$by}.");
             $this->sendStatusNotification();
         }
+
+        $this->refreshLogs();
     }
 
     public function updatedNewClosingAttachments(): void
@@ -184,7 +183,7 @@ class TicketDetail extends Component
         }
 
         $this->validate([
-            'closingRemark' => 'required|string|min:5',
+            'closingRemark'      => 'required|string|min:5',
             'closingAttachments' => 'array|max:5',
             'closingAttachments.*' => 'file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png,gif',
         ]);
@@ -192,49 +191,52 @@ class TicketDetail extends Component
         $oldStatus = $this->ticket->status;
 
         $this->ticket->update([
-            'status' => 'closed',
-            'closed_at' => now(),
+            'status'         => 'closed',
+            'closed_at'      => now(),
             'closing_remark' => $this->closingRemark,
         ]);
 
-        // Handle file attachments
         foreach ($this->closingAttachments as $attachment) {
             $detectedMime = $this->verifyFileContent($attachment);
             if (!$detectedMime) {
                 continue;
             }
 
-            $extension = $attachment->getClientOriginalExtension();
+            $extension      = $attachment->getClientOriginalExtension();
             $randomFilename = bin2hex(random_bytes(16)) . '.' . $extension;
-
-            $path = $attachment->storeAs('attachments/' . $this->ticket->id, $randomFilename, 'public');
+            $path           = $attachment->storeAs('attachments/' . $this->ticket->id, $randomFilename, 'public');
 
             TicketAttachment::create([
-                'ticket_id' => $this->ticket->id,
-                'filename' => $randomFilename,
+                'ticket_id'         => $this->ticket->id,
+                'filename'          => $randomFilename,
                 'original_filename' => $this->sanitizeFilename($attachment->getClientOriginalName()),
-                'path' => $path,
-                'mime_type' => $detectedMime,
-                'size' => $attachment->getSize(),
+                'path'              => $path,
+                'mime_type'         => $detectedMime,
+                'size'              => $attachment->getSize(),
             ]);
         }
 
+        $by = Auth::user()->name;
+        $this->addSystemLog('closed', "Ticket closed by {$by}. Remark: {$this->closingRemark}");
+
         $this->ticket->refresh();
         $this->ticket->load('attachments');
-        $this->newStatus = 'closed';
+        $this->newStatus      = 'closed';
         $this->showCloseModal = false;
-        $this->closingRemark = '';
+        $this->closingRemark  = '';
         $this->closingAttachments = [];
 
         if ($oldStatus !== 'closed') {
             $this->sendStatusNotification();
         }
+
+        $this->refreshLogs();
     }
 
     public function cancelClose(): void
     {
         $this->showCloseModal = false;
-        $this->closingRemark = '';
+        $this->closingRemark  = '';
         $this->closingAttachments = [];
         $this->newStatus = $this->ticket->status;
     }
@@ -244,11 +246,9 @@ class TicketDetail extends Component
         $email = $this->ticket->requester_email;
 
         if ($this->ticket->status === 'resolved') {
-            Notification::route('mail', $email)
-                ->notify(new TicketResolved($this->ticket));
+            Notification::route('mail', $email)->notify(new TicketResolved($this->ticket));
         } elseif ($this->ticket->status === 'closed') {
-            Notification::route('mail', $email)
-                ->notify(new TicketClosed($this->ticket));
+            Notification::route('mail', $email)->notify(new TicketClosed($this->ticket));
         }
     }
 
@@ -258,52 +258,57 @@ class TicketDetail extends Component
             return;
         }
 
+        $oldPriority = $this->ticket->priority;
         $this->ticket->update(['priority' => $this->newPriority]);
         $this->ticket->refresh();
+
+        $by = Auth::user()->name;
+        $this->addSystemLog('priority_changed', "Priority changed from " . ucfirst($oldPriority) . " to " . ucfirst($this->newPriority) . " by {$by}.");
+
+        $this->refreshLogs();
     }
 
-    public function submitReply(): void
+    public function submitLog(): void
     {
         $this->validate([
-            'replyMessage' => 'required|string|min:10',
+            'logNote' => 'required|string|min:5',
         ]);
 
-        $reply = TicketReply::create([
-            'ticket_id' => $this->ticket->id,
-            'user_id' => auth()->id(),
-            'message' => $this->replyMessage,
-            'is_client_reply' => false,
-            'is_internal_note' => $this->isInternalNote,
+        TicketLog::create([
+            'ticket_id'   => $this->ticket->id,
+            'user_id'     => Auth::id(),
+            'type'        => 'manual',
+            'action'      => 'note',
+            'description' => $this->logNote,
         ]);
 
-        // Send email notification to requester (only for non-internal notes)
-        if (!$this->isInternalNote) {
-            $this->sendReplyNotification($reply);
-        }
-
-        $this->replyMessage = '';
-        $this->isInternalNote = false;
-        $this->ticket->refresh();
-        $this->ticket->load('replies.user');
+        $this->logNote = '';
+        $this->refreshLogs();
     }
 
-    protected function sendReplyNotification(TicketReply $reply): void
+    protected function addSystemLog(string $action, string $description): void
     {
-        $email = $this->ticket->requester_email;
+        TicketLog::create([
+            'ticket_id'   => $this->ticket->id,
+            'user_id'     => Auth::id(),
+            'type'        => 'system',
+            'action'      => $action,
+            'description' => $description,
+        ]);
+    }
 
-        if ($email) {
-            Notification::route('mail', $email)
-                ->notify(new TicketReplyFromStaff($this->ticket, $reply));
-        }
+    protected function refreshLogs(): void
+    {
+        $this->ticket->load('logs.user');
     }
 
     private function verifyFileContent($file): ?string
     {
         $allowedTypes = [
-            'image/jpeg' => ["\xFF\xD8\xFF"],
-            'image/png' => ["\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"],
-            'image/gif' => ["GIF87a", "GIF89a"],
-            'application/pdf' => ["%PDF"],
+            'image/jpeg'       => ["\xFF\xD8\xFF"],
+            'image/png'        => ["\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"],
+            'image/gif'        => ["GIF87a", "GIF89a"],
+            'application/pdf'  => ["%PDF"],
             'application/msword' => ["\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"],
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => ["PK\x03\x04"],
         ];
@@ -341,8 +346,8 @@ class TicketDetail extends Component
         $filename = preg_replace('/[^\w\-\.\s]/', '_', $filename);
 
         if (strlen($filename) > 255) {
-            $ext = pathinfo($filename, PATHINFO_EXTENSION);
-            $name = pathinfo($filename, PATHINFO_FILENAME);
+            $ext      = pathinfo($filename, PATHINFO_EXTENSION);
+            $name     = pathinfo($filename, PATHINFO_FILENAME);
             $filename = substr($name, 0, 250 - strlen($ext)) . '.' . $ext;
         }
 
@@ -351,14 +356,12 @@ class TicketDetail extends Component
 
     public function render()
     {
+        $users       = User::active()->orderBy('name')->get();
         $departments = Department::active()->orderBy('name')->get();
-        $units = $this->assignDepartment
-            ? Unit::where('department_id', $this->assignDepartment)->active()->orderBy('name')->get()
-            : collect();
 
         return view('livewire.staff.tickets.ticket-detail', [
+            'users'       => $users,
             'departments' => $departments,
-            'units' => $units,
         ]);
     }
 }

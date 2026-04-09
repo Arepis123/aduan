@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Staff;
 
+use App\Models\Category;
 use App\Models\Ticket;
 use App\Models\TicketAttachment;
-use App\Notifications\TicketCreated;
-use Illuminate\Support\Facades\Notification;
+use App\Models\TicketLog;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
@@ -13,10 +13,24 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 
 #[Layout('layouts.app')]
-#[Title('Submit Internal Ticket - Sistem Aduan CLAB')]
+#[Title('Submit Ticket - Sistem Aduan CLAB')]
 class SubmitTicket extends Component
 {
     use WithFileUploads;
+
+    // Complainant info
+    #[Validate('required|string|max:255')]
+    public string $complainant_name = '';
+
+    #[Validate('nullable|string|max:20')]
+    public string $complainant_phone = '';
+
+    #[Validate('nullable|string|max:255')]
+    public string $complainant_company = '';
+
+    // Ticket details
+    #[Validate('nullable|exists:categories,id')]
+    public ?int $category_id = null;
 
     #[Validate('required|string|max:255')]
     public string $subject = '';
@@ -33,18 +47,14 @@ class SubmitTicket extends Component
     ])]
     public array $attachments = [];
 
-    // Temporary property for new file uploads
     public array $newAttachments = [];
 
     public ?Ticket $submittedTicket = null;
 
     public function updatedNewAttachments(): void
     {
-        // Merge new uploads with existing attachments
         $this->attachments = array_merge($this->attachments, $this->newAttachments);
-        $this->newAttachments = []; // Clear temporary array
-
-        // Validate after merging
+        $this->newAttachments = [];
         $this->validateOnly('attachments');
         $this->validateOnly('attachments.*');
     }
@@ -56,18 +66,18 @@ class SubmitTicket extends Component
         $user = auth()->user();
 
         $ticket = Ticket::create([
-            'user_id' => $user->id,
-            'requester_name' => $user->name,
-            'requester_email' => $user->email,
-            'requester_phone' => $user->phone,
-            'requester_type' => 'internal',
-            'subject' => $this->subject,
-            'description' => $this->description,
-            'priority' => $this->priority,
-            'status' => 'open',
+            'user_id'              => $user->id,
+            'requester_name'       => $this->complainant_name,
+            'requester_phone'      => $this->complainant_phone ?: null,
+            'complainant_company'  => $this->complainant_company ?: null,
+            'requester_type'       => 'internal',
+            'category_id'          => $this->category_id,
+            'subject'              => $this->subject,
+            'description'          => $this->description,
+            'priority'             => $this->priority,
+            'status'               => 'open',
         ]);
 
-        // Handle file attachments
         foreach ($this->attachments as $attachment) {
             $detectedMime = $this->verifyFileContent($attachment);
             if (!$detectedMime) {
@@ -80,18 +90,23 @@ class SubmitTicket extends Component
             $path = $attachment->storeAs('attachments/' . $ticket->id, $randomFilename, 'public');
 
             TicketAttachment::create([
-                'ticket_id' => $ticket->id,
-                'filename' => $randomFilename,
+                'ticket_id'         => $ticket->id,
+                'filename'          => $randomFilename,
                 'original_filename' => $this->sanitizeFilename($attachment->getClientOriginalName()),
-                'path' => $path,
-                'mime_type' => $detectedMime,
-                'size' => $attachment->getSize(),
+                'path'              => $path,
+                'mime_type'         => $detectedMime,
+                'size'              => $attachment->getSize(),
             ]);
         }
 
-        // Send confirmation email to requester (internal staff)
-        Notification::route('mail', $ticket->requester_email)
-            ->notify(new TicketCreated($ticket));
+        // Auto-log ticket creation
+        TicketLog::create([
+            'ticket_id'   => $ticket->id,
+            'user_id'     => $user->id,
+            'type'        => 'system',
+            'action'      => 'created',
+            'description' => "Ticket created by {$user->name} on behalf of complainant {$this->complainant_name}.",
+        ]);
 
         $this->submittedTicket = $ticket;
         $this->dispatch('ticket-submitted');
@@ -106,10 +121,10 @@ class SubmitTicket extends Component
     private function verifyFileContent($file): ?string
     {
         $allowedTypes = [
-            'image/jpeg' => ["\xFF\xD8\xFF"],
-            'image/png' => ["\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"],
-            'image/gif' => ["GIF87a", "GIF89a"],
-            'application/pdf' => ["%PDF"],
+            'image/jpeg'       => ["\xFF\xD8\xFF"],
+            'image/png'        => ["\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"],
+            'image/gif'        => ["GIF87a", "GIF89a"],
+            'application/pdf'  => ["%PDF"],
             'application/msword' => ["\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"],
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => ["PK\x03\x04"],
         ];
@@ -157,6 +172,8 @@ class SubmitTicket extends Component
 
     public function render()
     {
-        return view('livewire.staff.submit-ticket');
+        return view('livewire.staff.submit-ticket', [
+            'categories' => Category::active()->orderBy('name')->get(),
+        ]);
     }
 }

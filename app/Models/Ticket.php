@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Ticket extends Model
@@ -14,12 +15,13 @@ class Ticket extends Model
     protected $fillable = [
         'ticket_number',
         'user_id',
+        'sector_id',
         'department_id',
-        'unit_id',
         'category_id',
         'requester_name',
         'requester_email',
         'requester_phone',
+        'complainant_company',
         'requester_type',
         'subject',
         'description',
@@ -96,14 +98,19 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function assignees(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'ticket_assignees')->withTimestamps();
+    }
+
+    public function sector(): BelongsTo
+    {
+        return $this->belongsTo(Sector::class);
+    }
+
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
-    }
-
-    public function unit(): BelongsTo
-    {
-        return $this->belongsTo(Unit::class);
     }
 
     public function category(): BelongsTo
@@ -111,16 +118,9 @@ class Ticket extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function replies(): HasMany
+    public function logs(): HasMany
     {
-        return $this->hasMany(TicketReply::class)->orderBy('created_at', 'asc');
-    }
-
-    public function publicReplies(): HasMany
-    {
-        return $this->hasMany(TicketReply::class)
-            ->where('is_internal_note', false)
-            ->orderBy('created_at', 'asc');
+        return $this->hasMany(TicketLog::class)->orderBy('created_at', 'asc');
     }
 
     public function attachments(): HasMany

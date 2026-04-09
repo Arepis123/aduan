@@ -1,4 +1,4 @@
-<div class="max-w-3xl mx-auto">
+<div class="max-w-4xl mx-auto">
     @if($submittedTicket)
         <!-- Success Message -->
         <flux:card class="text-center">
@@ -6,10 +6,10 @@
                 <flux:icon.check class="size-8 text-green-600 dark:text-green-400" />
             </div>
             <flux:heading size="xl" class="mb-2">Ticket Submitted Successfully!</flux:heading>
-            <flux:text class="mb-6">Your internal ticket has been created and logged in the system.</flux:text>
+            <flux:text class="mb-6">The complaint/enquiry has been logged in the system.</flux:text>
 
             <div class="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-6 mb-6">
-                <flux:text size="sm" class="mb-2">Your Ticket Number</flux:text>
+                <flux:text size="sm" class="mb-2">Ticket Number</flux:text>
                 <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{{ $submittedTicket->ticket_number }}</p>
             </div>
 
@@ -25,25 +25,33 @@
     @else
         <!-- Ticket Form -->
         <flux:card>
-            <flux:heading size="xl" class="mb-2">Submit Internal Ticket</flux:heading>
-            <flux:subheading class="mb-8">Submit a complaint or enquiry as a staff member.</flux:subheading>            
+            <flux:heading size="xl" class="mb-2">Submit Ticket</flux:heading>
+            <flux:subheading class="mb-8">Log a complaint or enquiry received via email or WhatsApp.</flux:subheading>
 
             <form wire:submit="submit" class="space-y-6">
-                <!-- Requester Information (Auto-filled) -->
+                <!-- Complainant Information -->
                 <flux:fieldset>
-                    <flux:legend>Your Information</flux:legend>
+                    <flux:legend>Complainant Information</flux:legend>
 
-                    <div class="grid md:grid-cols-2 gap-6 mt-4">
-                        <flux:field>
-                            <flux:label>Full Name</flux:label>
-                            <flux:input value="{{ auth()->user()->name }}" disabled />
-                            <flux:description>Auto-filled from your account</flux:description>
-                        </flux:field>
+                    <div class="space-y-4 mt-4">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <flux:field>
+                                <flux:label badge="Required">Complainant Name</flux:label>
+                                <flux:input wire:model="complainant_name" placeholder="Full name of complainant" />
+                                <flux:error name="complainant_name" />
+                            </flux:field>
+
+                            <flux:field>
+                                <flux:label>Phone Number</flux:label>
+                                <flux:input wire:model="complainant_phone" placeholder="e.g. 01X-XXXXXXX" />
+                                <flux:error name="complainant_phone" />
+                            </flux:field>
+                        </div>
 
                         <flux:field>
-                            <flux:label>Email Address</flux:label>
-                            <flux:input value="{{ auth()->user()->email }}" disabled />
-                            <flux:description>Auto-filled from your account</flux:description>
+                            <flux:label>Company / Organisation</flux:label>
+                            <flux:input wire:model="complainant_company" placeholder="Company or organisation name" />
+                            <flux:error name="complainant_company" />
                         </flux:field>
                     </div>
                 </flux:fieldset>
@@ -54,19 +62,31 @@
                 <flux:fieldset>
                     <flux:legend>Ticket Details</flux:legend>
 
-                    <div class="space-y-6 mt-4">
+                    <div class="space-y-4 mt-4">
+                        <flux:field>
+                            <flux:label>Category</flux:label>
+                            <flux:select variant="listbox" wire:model="category_id" placeholder="Select a category">
+                                <flux:select.option value="">-- No Category --</flux:select.option>
+                                @foreach($categories as $category)
+                                    <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="category_id" />
+                        </flux:field>
+
                         <flux:field>
                             <flux:label badge="Required">Subject</flux:label>
-                            <flux:input wire:model="subject" placeholder="Brief description of your issue" />
+                            <flux:input wire:model="subject" placeholder="Brief description of the issue" />
                             <flux:error name="subject" />
                         </flux:field>
 
                         <flux:field>
                             <flux:label badge="Required">Description</flux:label>
-                            <flux:textarea
+                            <flux:editor
                                 wire:model="description"
-                                placeholder="Please provide detailed information about your issue or enquiry"
-                                rows="5"
+                                placeholder="Provide detailed information about the complaint or enquiry"
+                                toolbar="heading | bold italic underline strike | bullet ordered blockquote | link | undo redo"
+                                class="[&_[data-slot=content]]:min-h-[160px]!"
                             />
                             <flux:description>Minimum 20 characters</flux:description>
                             <flux:error name="description" />

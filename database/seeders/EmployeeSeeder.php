@@ -59,11 +59,11 @@ class EmployeeSeeder extends Seeder
                 'name' => $name,
                 'email' => $email,
                 'password' => $password,
-                'role' => 'agent',
+                'role' => 'staff',
             ]);
 
-            // Assign agent role using Spatie Permission
-            $user->assignRole('agent');
+            // Assign staff role using Spatie Permission
+            $user->assignRole('staff');
 
             $imported++;
             $this->command->info("Imported: {$name} ({$email}) - Password: {$password}");

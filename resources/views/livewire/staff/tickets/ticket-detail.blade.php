@@ -47,31 +47,6 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-6">
-            <!-- Ticket Details -->
-            <flux:card>
-                <flux:heading size="lg" class="mb-4">{{ $ticket->subject }}</flux:heading>
-                <div class="prose prose-sm dark:prose-invert max-w-none">
-                    {!! nl2br(e($ticket->description)) !!}
-                </div>
-
-                @if($ticket->attachments->count() > 0)
-                    <flux:separator class="my-6" />
-                    <flux:heading size="sm" class="mb-3">Attachments</flux:heading>
-                    <div class="flex flex-wrap gap-2">
-                        @foreach($ticket->attachments as $attachment)
-                            <flux:button
-                                href="{{ $attachment->url }}"
-                                target="_blank"
-                                variant="ghost"
-                                size="sm"
-                                icon="paper-clip"
-                            >
-                                {{ $attachment->original_filename }} ({{ $attachment->human_size }})
-                            </flux:button>
-                        @endforeach
-                    </div>
-                @endif
-            </flux:card>
 
             <!-- Requester Information -->
             <flux:card>
@@ -96,64 +71,111 @@
                 </dl>
             </flux:card>
 
-            <!-- Conversation -->
+            <!-- Ticket Details -->
             <flux:card>
-                <flux:heading size="lg" class="mb-4">Conversation</flux:heading>
+                <flux:heading size="lg" class="mb-4">{{ $ticket->subject }}</flux:heading>
+                <div class="prose prose-sm dark:prose-invert max-w-none">
+                    {!! $ticket->description !!}
+                </div>
 
-                @if($ticket->replies->count() > 0)
-                    <div class="space-y-4 mb-6">
-                        @foreach($ticket->replies as $reply)
-                            <div @class([
-                                'p-4 rounded-lg',
-                                'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' => $reply->is_internal_note,
-                                'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800' => !$reply->is_client_reply && !$reply->is_internal_note,
-                                'bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700' => $reply->is_client_reply,
-                            ])>
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2">
-                                        <flux:text class="font-medium">{{ $reply->author_name }}</flux:text>
-                                        @if($reply->is_internal_note)
-                                            <flux:badge size="sm" color="amber">Internal Note</flux:badge>
-                                        @elseif(!$reply->is_client_reply)
-                                            <flux:badge size="sm" color="indigo">Staff</flux:badge>
-                                        @else
-                                            <flux:badge size="sm" color="zinc">Requester</flux:badge>
-                                        @endif
-                                    </div>
-                                    <flux:text size="xs">{{ $reply->created_at->format('M d, Y h:i A') }}</flux:text>
-                                </div>
-                                <div class="text-zinc-700 dark:text-zinc-300">
-                                    {!! nl2br(e($reply->message)) !!}
-                                </div>
-                            </div>
+                @if($ticket->attachments->count() > 0)
+                    <flux:separator class="my-6" />
+                    <flux:heading size="sm" class="mb-3">Attachments</flux:heading>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($ticket->attachments as $attachment)
+                            <flux:button
+                                href="{{ $attachment->url }}"
+                                target="_blank"
+                                variant="ghost"
+                                size="sm"
+                                icon="paper-clip"
+                            >
+                                {{ $attachment->original_filename }} ({{ $attachment->human_size }})
+                            </flux:button>
                         @endforeach
                     </div>
+                @endif
+            </flux:card>
+
+            <!-- Tracking Log -->
+            <flux:card>
+                <flux:heading size="lg" class="mb-6">Tracking Log</flux:heading>
+
+                @if($ticket->logs->count() > 0)
+                    <flux:timeline class="mb-6">
+                        @foreach($ticket->logs as $log)
+                            <flux:timeline.item>
+                                <flux:timeline.indicator
+                                    :color="$log->isManual() ? 'indigo' : match($log->action) {
+                                        'created'          => 'blue',
+                                        'assigned'         => 'violet',
+                                        'status_changed'   => 'green',
+                                        'priority_changed' => 'amber',
+                                        'closed'           => 'zinc',
+                                        default            => 'zinc',
+                                    }"
+                                >
+                                    @if($log->isManual())
+                                        <flux:icon.pencil-square variant="micro" />
+                                    @elseif($log->action === 'created')
+                                        <flux:icon.plus variant="micro" />
+                                    @elseif($log->action === 'assigned')
+                                        <flux:icon.user-plus variant="micro" />
+                                    @elseif($log->action === 'status_changed')
+                                        <flux:icon.arrow-path variant="micro" />
+                                    @elseif($log->action === 'priority_changed')
+                                        <flux:icon.arrow-trending-up variant="micro" />
+                                    @elseif($log->action === 'closed')
+                                        <flux:icon.lock-closed variant="micro" />
+                                    @else
+                                        <flux:icon.information-circle variant="micro" />
+                                    @endif
+                                </flux:timeline.indicator>
+
+                                <flux:timeline.content>
+                                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                                        @if($log->isManual())
+                                            <flux:badge size="sm" color="indigo">Note</flux:badge>
+                                            <flux:text size="sm" class="font-medium">{{ $log->user?->name ?? 'Unknown' }}</flux:text>
+                                        @else
+                                            <flux:badge size="sm" color="zinc">System</flux:badge>
+                                        @endif
+                                        <flux:text size="xs" class="text-zinc-400 ml-auto">
+                                            {{ $log->created_at->format('d M Y, h:i A') }}
+                                        </flux:text>
+                                    </div>
+                                    <flux:text size="sm" class="text-zinc-600 dark:text-zinc-400">
+                                        {{ $log->description }}
+                                    </flux:text>
+                                </flux:timeline.content>
+                            </flux:timeline.item>
+                        @endforeach
+                    </flux:timeline>
                 @else
-                    <flux:text class="text-center py-4 mb-6">No replies yet.</flux:text>
+                    <flux:text class="text-center py-6 text-zinc-400 mb-4">No log entries yet.</flux:text>
                 @endif
 
                 <flux:separator class="my-4" />
 
-                <!-- Reply Form -->
-                <form wire:submit="submitReply" class="space-y-4">
-                    <flux:field>
-                        <flux:label>Add a Reply</flux:label>
-                        <flux:textarea
-                            wire:model="replyMessage"
-                            placeholder="Type your message here..."
-                            rows="4"
-                        />
-                        <flux:error name="replyMessage" />
-                    </flux:field>
-
-                    <div class="flex items-center justify-between">
-                        <flux:checkbox wire:model="isInternalNote" label="Internal note (not visible to requester)" />
-
-                        <flux:button type="submit" variant="primary" icon="paper-airplane">
-                            Send Reply
-                        </flux:button>
-                    </div>
-                </form>
+                <!-- Manual Note Entry -->
+                <div>
+                    <flux:heading size="sm" class="mb-3">Add Note</flux:heading>
+                    <form wire:submit="submitLog" class="space-y-3">
+                        <flux:field>
+                            <flux:textarea
+                                wire:model="logNote"
+                                placeholder="Enter a note or remark..."
+                                rows="3"
+                            />
+                            <flux:error name="logNote" />
+                        </flux:field>
+                        <div class="flex justify-end">
+                            <flux:button type="submit" variant="primary" size="sm" icon="pencil-square">
+                                Add Note
+                            </flux:button>
+                        </div>
+                    </form>
+                </div>
             </flux:card>
         </div>
 
@@ -214,27 +236,36 @@
                 <flux:heading size="lg" class="mb-4">Assignment</flux:heading>
 
                 <div class="space-y-4">
+                    <!-- Assign to Users -->
+                    <div>
+                        <flux:label class="mb-2 block">Assign To</flux:label>
+                        @php $selectedUsers = $users->whereIn('id', $assignUserIds); @endphp
+                        @if($selectedUsers->isNotEmpty())
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                @foreach($selectedUsers as $su)
+                                    <flux:badge size="sm" color="indigo">{{ $su->name }}</flux:badge>
+                                @endforeach
+                            </div>
+                        @else
+                            <flux:text size="sm" class="text-zinc-400 mb-2">No users selected</flux:text>
+                        @endif
+                        <flux:button wire:click="$set('showUserModal', true)" size="sm" variant="outline" icon="users" class="w-full">
+                            {{ $selectedUsers->isEmpty() ? 'Select Users' : 'Change Selection' }}
+                        </flux:button>
+                    </div>
+
+                    <flux:separator />
+
+                    <!-- CC Department -->
                     <flux:field>
-                        <flux:label>Department</flux:label>
-                        <flux:select variant="listbox" wire:model.live="assignDepartment">
-                            <flux:select.option value="">Select Department</flux:select.option>
+                        <flux:label>CC Department</flux:label>
+                        <flux:description>Department email(s) will be CC'd on the notification</flux:description>
+                        <flux:select variant="listbox" wire:model="ccDepartmentId" class="mt-1">
+                            <flux:select.option value="">None</flux:select.option>
                             @foreach($departments as $department)
                                 <flux:select.option value="{{ $department->id }}">{{ $department->name }}</flux:select.option>
                             @endforeach
                         </flux:select>
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>Unit</flux:label>
-                        <flux:select variant="listbox" wire:model="assignUnit" :disabled="!$assignDepartment">
-                            <flux:select.option value="">Select Unit</flux:select.option>
-                            @foreach($units as $unit)
-                                <flux:select.option value="{{ $unit->id }}">{{ $unit->name }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                        @if(!$assignDepartment)
-                            <flux:description>Select a department first</flux:description>
-                        @endif
                     </flux:field>
 
                     <flux:button wire:click="updateAssignment" variant="primary" size="sm" class="w-full">
@@ -255,12 +286,24 @@
 
                 <dl class="space-y-3">
                     <div>
-                        <flux:text size="sm" class="text-zinc-500">Department</flux:text>
-                        <flux:text class="font-medium">{{ $ticket->department?->name ?? 'Unassigned' }}</flux:text>
+                        <flux:text size="sm" class="text-zinc-500">Assigned To</flux:text>
+                        @if($ticket->assignees->count() > 0)
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                @foreach($ticket->assignees as $assignee)
+                                    <flux:badge size="sm" color="indigo">{{ $assignee->name }}</flux:badge>
+                                @endforeach
+                            </div>
+                        @else
+                            <flux:text class="font-medium text-zinc-400">Unassigned</flux:text>
+                        @endif
                     </div>
                     <div>
-                        <flux:text size="sm" class="text-zinc-500">Unit</flux:text>
-                        <flux:text class="font-medium">{{ $ticket->unit?->name ?? 'Unassigned' }}</flux:text>
+                        <flux:text size="sm" class="text-zinc-500">CC Department</flux:text>
+                        <flux:text class="font-medium">{{ $ticket->department?->name ?? '-' }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:text size="sm" class="text-zinc-500">CC Sector</flux:text>
+                        <flux:text class="font-medium">{{ $ticket->sector?->name ?? '-' }}</flux:text>
                     </div>
                     <div>
                         <flux:text size="sm" class="text-zinc-500">Category</flux:text>
@@ -293,6 +336,42 @@
             </flux:card>
         </div>
     </div>
+
+    <!-- User Picker Modal -->
+    <flux:modal wire:model="showUserModal" class="max-w-md">
+        <div class="space-y-4">
+            <div>
+                <flux:heading size="lg">Select Users to Assign</flux:heading>
+                <flux:text size="sm" class="text-zinc-500 mt-1">Search and select one or more users to handle this ticket.</flux:text>
+            </div>
+
+            <flux:pillbox
+                wire:model="assignUserIds"
+                multiple
+                searchable
+                search:placeholder="Search by name or email..."
+                placeholder="Pick users..."
+            >
+                @foreach($users as $user)
+                    <flux:pillbox.option :value="$user->id">
+                        <div class="flex flex-col">
+                            <span class="font-medium">{{ $user->name }}</span>
+                            <span class="text-xs text-zinc-400">{{ $user->email }}</span>
+                        </div>
+                    </flux:pillbox.option>
+                @endforeach
+            </flux:pillbox>
+
+            <div class="flex items-center justify-between pt-2">
+                <flux:text size="sm" class="text-zinc-500">
+                    {{ count($assignUserIds) }} user(s) selected
+                </flux:text>
+                <flux:button wire:click="$set('showUserModal', false)" variant="primary">
+                    Done
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 
     <!-- Close Ticket Modal -->
     <flux:modal wire:model="showCloseModal" class="md:w-96 space-y-6">

@@ -45,9 +45,6 @@
                     <flux:navlist.item href="{{ route('staff.departments.index') }}" :current="request()->routeIs('staff.departments.*')" wire:navigate icon="building-office">
                         Departments
                     </flux:navlist.item>
-                    <flux:navlist.item href="{{ route('staff.units.index') }}" :current="request()->routeIs('staff.units.*')" wire:navigate icon="square-3-stack-3d">
-                        Units
-                    </flux:navlist.item>
                     <flux:navlist.item href="{{ route('staff.categories.index') }}" :current="request()->routeIs('staff.categories.*')" wire:navigate icon="tag">
                         Categories
                     </flux:navlist.item>

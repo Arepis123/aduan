@@ -20,24 +20,25 @@ class Dashboard extends Component
         // Base query
         $ticketQuery = Ticket::query();
 
-        // Agents can only see their department's tickets or assigned tickets
+        // Agents can only see tickets in their department or assigned to them
         if (!$isAdmin) {
             $ticketQuery->where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('department_id', $user->department_id);
+                $q->where('department_id', $user->department_id)
+                  ->orWhereHas('assignees', fn($q) => $q->where('users.id', $user->id));
             });
         }
 
         $stats = [
-            'total' => (clone $ticketQuery)->count(),
-            'open' => (clone $ticketQuery)->where('status', 'open')->count(),
+            'total'       => (clone $ticketQuery)->count(),
+            'open'        => (clone $ticketQuery)->where('status', 'open')->count(),
             'in_progress' => (clone $ticketQuery)->where('status', 'in_progress')->count(),
-            'pending' => (clone $ticketQuery)->where('status', 'pending')->count(),
-            'resolved' => (clone $ticketQuery)->where('status', 'resolved')->count(),
-            'my_assigned' => Ticket::where('user_id', $user->id)->whereIn('status', ['open', 'in_progress', 'pending'])->count(),
-            'unassigned' => $isAdmin
-                ? Ticket::whereNull('user_id')->whereIn('status', ['open', 'in_progress', 'pending'])->count()
-                : Ticket::whereNull('user_id')->where('department_id', $user->department_id)->whereIn('status', ['open', 'in_progress', 'pending'])->count(),
+            'pending'     => (clone $ticketQuery)->where('status', 'pending')->count(),
+            'resolved'    => (clone $ticketQuery)->where('status', 'resolved')->count(),
+            'my_assigned' => Ticket::whereHas('assignees', fn($q) => $q->where('users.id', $user->id))
+                ->whereIn('status', ['open', 'in_progress', 'pending'])->count(),
+            'unassigned'  => $isAdmin
+                ? Ticket::doesntHave('assignees')->whereIn('status', ['open', 'in_progress', 'pending'])->count()
+                : Ticket::doesntHave('assignees')->where('department_id', $user->department_id)->whereIn('status', ['open', 'in_progress', 'pending'])->count(),
         ];
 
         $recentTickets = (clone $ticketQuery)
@@ -49,7 +50,7 @@ class Dashboard extends Component
         $slaTickets = (clone $ticketQuery)
             ->whereIn('status', ['open', 'in_progress', 'pending'])
             ->whereNotNull('assigned_at')
-            ->with(['department', 'unit', 'assignedAgent'])
+            ->with(['department', 'assignedAgent'])
             ->orderBy('assigned_at', 'asc')
             ->get();
 

@@ -29,7 +29,10 @@
       "Bash(composer update:*)",
       "Bash(composer audit:*)",
       "Bash(fsutil reparsepoint query:*)",
-      "Bash(php -v:*)"
+      "Bash(php -v:*)",
+      "Bash(xargs grep:*)",
+      "Bash(xargs ls:*)",
+      "Bash(grep:*)"
     ]
   }
 }

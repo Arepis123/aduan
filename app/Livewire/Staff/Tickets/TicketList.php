@@ -30,9 +30,6 @@ class TicketList extends Component
     public ?int $department_id = null;
 
     #[Url]
-    public string $type = '';
-
-    #[Url]
     public string $sortBy = 'created_at';
 
     #[Url]
@@ -59,7 +56,6 @@ class TicketList extends Component
         $this->status = '';
         $this->priority = '';
         $this->department_id = null;
-        $this->type = '';
         $this->resetPage();
     }
 
@@ -70,11 +66,11 @@ class TicketList extends Component
 
         $query = Ticket::with(['department', 'category', 'assignedAgent']);
 
-        // Agents can only see their department's tickets
+        // Agents can only see their department's tickets or tickets assigned to them
         if (!$isAdmin) {
             $query->where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('department_id', $user->department_id);
+                $q->where('department_id', $user->department_id)
+                  ->orWhereHas('assignees', fn($q) => $q->where('users.id', $user->id));
             });
         }
 
@@ -98,10 +94,6 @@ class TicketList extends Component
 
         if ($this->department_id) {
             $query->where('department_id', $this->department_id);
-        }
-
-        if ($this->type) {
-            $query->where('requester_type', $this->type);
         }
 
         $tickets = $query->orderBy($this->sortBy, $this->sortDirection)->paginate(20);
