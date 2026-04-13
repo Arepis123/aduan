@@ -68,6 +68,10 @@
                         <flux:text size="sm" class="text-zinc-500">Type</flux:text>
                         <flux:text class="font-medium">{{ ucfirst($ticket->requester_type) }}</flux:text>
                     </div>
+                    <div>
+                        <flux:text size="sm" class="text-zinc-500">Created</flux:text>
+                        <flux:text class="font-medium">{{ $ticket->created_at->format('d M Y, h:i A') }}</flux:text>
+                    </div>
                 </dl>
             </flux:card>
 

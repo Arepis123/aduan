@@ -22,6 +22,9 @@ class SubmitTicket extends Component
     #[Validate('required|string|max:255')]
     public string $complainant_name = '';
 
+    #[Validate('nullable|email|max:255')]
+    public string $complainant_email = '';
+
     #[Validate('nullable|string|max:20')]
     public string $complainant_phone = '';
 
@@ -68,6 +71,7 @@ class SubmitTicket extends Component
         $ticket = Ticket::create([
             'user_id'              => $user->id,
             'requester_name'       => $this->complainant_name,
+            'requester_email'      => $this->complainant_email ?: null,
             'requester_phone'      => $this->complainant_phone ?: null,
             'complainant_company'  => $this->complainant_company ?: null,
             'requester_type'       => 'internal',

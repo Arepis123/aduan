@@ -49,6 +49,12 @@
                         </div>
 
                         <flux:field>
+                            <flux:label>Email Address</flux:label>
+                            <flux:input wire:model="complainant_email" type="email" placeholder="e.g. example@email.com" />
+                            <flux:error name="complainant_email" />
+                        </flux:field>
+
+                        <flux:field>
                             <flux:label>Company / Organisation</flux:label>
                             <flux:input wire:model="complainant_company" placeholder="Company or organisation name" />
                             <flux:error name="complainant_company" />
