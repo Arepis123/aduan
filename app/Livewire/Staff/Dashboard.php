@@ -43,12 +43,6 @@ class Dashboard extends Component
                 : Ticket::doesntHave('assignees')->where('department_id', $user->department_id)->whereIn('status', ['open', 'in_progress', 'pending'])->count(),
         ];
 
-        $recentTickets = (clone $ticketQuery)
-            ->with(['department', 'category', 'assignedAgent'])
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
-
         $slaTickets = (clone $ticketQuery)
             ->whereIn('status', ['open', 'in_progress', 'pending'])
             ->whereNotNull('assigned_at')
@@ -87,36 +81,12 @@ class Dashboard extends Component
             'data'   => $deptData->pluck('total')->toArray(),
         ];
 
-        // Chart 3: Tickets Created vs Resolved — last 12 weeks
-        $weeks = collect(range(11, 0))->map(fn($i) => now()->startOfWeek()->subWeeks($i));
-
-        $createdByWeek  = (clone $ticketQuery)
-            ->select(DB::raw('YEARWEEK(created_at, 1) as yw'), DB::raw('count(*) as total'))
-            ->where('created_at', '>=', $weeks->first())
-            ->groupBy('yw')
-            ->pluck('total', 'yw');
-
-        $resolvedByWeek = (clone $ticketQuery)
-            ->select(DB::raw('YEARWEEK(resolved_at, 1) as yw'), DB::raw('count(*) as total'))
-            ->whereNotNull('resolved_at')
-            ->where('resolved_at', '>=', $weeks->first())
-            ->groupBy('yw')
-            ->pluck('total', 'yw');
-
-        $trendChart = [
-            'labels'   => $weeks->map(fn($w) => $w->format('d M'))->toArray(),
-            'created'  => $weeks->map(fn($w) => $createdByWeek[$w->format('oW')] ?? 0)->toArray(),
-            'resolved' => $weeks->map(fn($w) => $resolvedByWeek[$w->format('oW')] ?? 0)->toArray(),
-        ];
-
         return view('livewire.staff.dashboard', [
             'stats'        => $stats,
-            'recentTickets' => $recentTickets,
             'slaTickets'   => $slaTickets,
             'isAdmin'      => $isAdmin,
             'statusChart'  => $statusChart,
             'deptChart'    => $deptChart,
-            'trendChart'   => $trendChart,
         ]);
     }
 }
