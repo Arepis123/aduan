@@ -151,6 +151,22 @@
                                     <flux:text size="sm" class="text-zinc-600 dark:text-zinc-400">
                                         {{ $log->description }}
                                     </flux:text>
+                                    @if($log->isManual() && $log->attachments->isNotEmpty())
+                                        <div class="flex flex-wrap gap-2 mt-2">
+                                            @foreach($log->attachments as $attachment)
+                                                <a href="{{ $attachment->url }}" target="_blank"
+                                                   class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
+                                                    @if($attachment->isImage())
+                                                        <flux:icon.photo variant="micro" class="size-3.5 shrink-0" />
+                                                    @else
+                                                        <flux:icon.paper-clip variant="micro" class="size-3.5 shrink-0" />
+                                                    @endif
+                                                    {{ $attachment->original_filename }}
+                                                    <span class="text-zinc-400">({{ $attachment->human_size }})</span>
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </flux:timeline.content>
                             </flux:timeline.item>
                         @endforeach
@@ -164,20 +180,37 @@
                 <!-- Manual Note Entry -->
                 <div>
                     <flux:heading size="sm" class="mb-3">Add Note</flux:heading>
-                    <form wire:submit="submitLog" class="space-y-3">
-                        <flux:field>
-                            <flux:textarea
-                                wire:model="logNote"
-                                placeholder="Enter a note or remark..."
-                                rows="3"
-                            />
-                            <flux:error name="logNote" />
-                        </flux:field>
-                        <div class="flex justify-end">
-                            <flux:button type="submit" variant="primary" size="sm" icon="pencil-square">
-                                Add Note
-                            </flux:button>
+
+                    <!-- Staged attachments -->
+                    @if(!empty($logAttachments))
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            @foreach($logAttachments as $i => $file)
+                                <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                                    <flux:icon.paper-clip variant="micro" class="size-3.5 shrink-0" />
+                                    <span>{{ $file->getClientOriginalName() }}</span>
+                                    <button type="button" wire:click="removeLogAttachment({{ $i }})"
+                                            class="text-zinc-400 hover:text-red-500 transition-colors ml-1">
+                                        <flux:icon.x-mark variant="micro" class="size-3" />
+                                    </button>
+                                </div>
+                            @endforeach
                         </div>
+                    @endif
+
+                    <form wire:submit="submitLog">
+                        <flux:composer wire:model="logNote" label="Note" label:sr-only placeholder="Enter a note or remark...">
+                            <x-slot name="actionsLeading">
+                                <label>
+                                    <flux:button size="sm" variant="subtle" icon="paper-clip" as="div" />
+                                    <input type="file" wire:model="newLogAttachments" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" class="sr-only" />
+                                </label>
+                            </x-slot>
+                            <x-slot name="actionsTrailing">
+                                <flux:button type="submit" size="sm" variant="primary" icon="pencil-square">Submit</flux:button>
+                            </x-slot>
+                        </flux:composer>
+                        <flux:error name="logNote" class="mt-1" />
+                        <flux:error name="newLogAttachments.*" class="mt-1" />
                     </form>
                 </div>
             </flux:card>
@@ -240,41 +273,65 @@
                 <flux:heading size="lg" class="mb-4">Assignment</flux:heading>
 
                 <div class="space-y-4">
-                    <!-- Assign to Users -->
-                    <div>
-                        <flux:label class="mb-2 block">Assign To</flux:label>
-                        @php $selectedUsers = $users->whereIn('id', $assignUserIds); @endphp
-                        @if($selectedUsers->isNotEmpty())
-                            <div class="flex flex-wrap gap-1 mb-2">
-                                @foreach($selectedUsers as $su)
-                                    <flux:badge size="sm" color="indigo">{{ $su->name }}</flux:badge>
+                    @if(auth()->user()->isAdmin())
+                        <!-- Assign to Users -->
+                        <div>
+                            <flux:label class="mb-2 block">Assign To</flux:label>
+                            @php $selectedUsers = $users->whereIn('id', $assignUserIds); @endphp
+                            @if($selectedUsers->isNotEmpty())
+                                <div class="flex flex-wrap gap-1 mb-2">
+                                    @foreach($selectedUsers as $su)
+                                        <flux:badge size="sm" color="indigo">{{ $su->name }}</flux:badge>
+                                    @endforeach
+                                </div>
+                            @else
+                                <flux:text size="sm" class="text-zinc-400 mb-2">No users selected</flux:text>
+                            @endif
+                            <flux:button wire:click="$set('showUserModal', true)" size="sm" variant="outline" icon="users" class="w-full">
+                                {{ $selectedUsers->isEmpty() ? 'Select Users' : 'Change Selection' }}
+                            </flux:button>
+                        </div>
+
+                        <flux:separator />
+
+                        <!-- CC Department -->
+                        <flux:field>
+                            <flux:label>CC Department</flux:label>
+                            <flux:description>Department email(s) will be CC'd on the notification</flux:description>
+                            <flux:select variant="listbox" wire:model="ccDepartmentId" class="mt-1">
+                                <flux:select.option value="">None</flux:select.option>
+                                @foreach($departments as $department)
+                                    <flux:select.option value="{{ $department->id }}">{{ $department->name }}</flux:select.option>
                                 @endforeach
-                            </div>
-                        @else
-                            <flux:text size="sm" class="text-zinc-400 mb-2">No users selected</flux:text>
-                        @endif
-                        <flux:button wire:click="$set('showUserModal', true)" size="sm" variant="outline" icon="users" class="w-full">
-                            {{ $selectedUsers->isEmpty() ? 'Select Users' : 'Change Selection' }}
+                            </flux:select>
+                        </flux:field>
+
+                        <flux:button wire:click="updateAssignment" variant="primary" size="sm" class="w-full">
+                            Assign & Send Notification
                         </flux:button>
-                    </div>
+                    @else
+                        <!-- Read-only view for non-admins -->
+                        <div>
+                            <flux:label class="mb-2 block">Assigned To</flux:label>
+                            @if($ticket->assignees->isNotEmpty())
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach($ticket->assignees as $assignee)
+                                        <flux:badge size="sm" color="indigo">{{ $assignee->name }}</flux:badge>
+                                    @endforeach
+                                </div>
+                            @else
+                                <flux:text size="sm" class="text-zinc-400">Not assigned</flux:text>
+                            @endif
+                        </div>
 
-                    <flux:separator />
-
-                    <!-- CC Department -->
-                    <flux:field>
-                        <flux:label>CC Department</flux:label>
-                        <flux:description>Department email(s) will be CC'd on the notification</flux:description>
-                        <flux:select variant="listbox" wire:model="ccDepartmentId" class="mt-1">
-                            <flux:select.option value="">None</flux:select.option>
-                            @foreach($departments as $department)
-                                <flux:select.option value="{{ $department->id }}">{{ $department->name }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                    </flux:field>
-
-                    <flux:button wire:click="updateAssignment" variant="primary" size="sm" class="w-full">
-                        Assign & Send Notification
-                    </flux:button>
+                        @if($ticket->department)
+                            <flux:separator />
+                            <div>
+                                <flux:label class="mb-1 block">CC Department</flux:label>
+                                <flux:text size="sm">{{ $ticket->department->name }}</flux:text>
+                            </div>
+                        @endif
+                    @endif
 
                     @if($ticket->assigned_at)
                         <flux:text size="xs" class="text-center text-zinc-500">

@@ -32,6 +32,8 @@ class TicketDetail extends Component
 
     // Manual log form
     public string $logNote = '';
+    public array $logAttachments = [];
+    public array $newLogAttachments = [];
 
     // Close ticket modal
     public bool $showCloseModal = false;
@@ -41,7 +43,7 @@ class TicketDetail extends Component
 
     public function mount(Ticket $ticket): void
     {
-        $this->ticket = $ticket->load(['sector', 'department', 'category', 'attachments', 'logs.user', 'assignees']);
+        $this->ticket = $ticket->load(['sector', 'department', 'category', 'attachments', 'logs.user', 'logs.attachments', 'assignees']);
         $this->assignUserIds = $ticket->assignees->pluck('id')->toArray();
         $this->ccDepartmentId = $ticket->department_id;
         $this->ccSectorId = $ticket->sector_id;
@@ -106,7 +108,7 @@ class TicketDetail extends Component
 
     protected function sendAssignmentNotification(): void
     {
-        $this->ticket->load(['assignees', 'department', 'sector']);
+        $this->ticket->load(['assignees', 'department', 'sector.users']);
 
         $toEmails = $this->ticket->assignees->pluck('email')->filter()->values();
         $ccEmails = collect();
@@ -115,8 +117,13 @@ class TicketDetail extends Component
             $ccEmails = $ccEmails->merge($this->ticket->department->emails);
         }
 
-        if ($this->ticket->sector?->emails) {
-            $ccEmails = $ccEmails->merge($this->ticket->sector->emails);
+        if ($this->ticket->sector) {
+            if ($this->ticket->sector->emails) {
+                $ccEmails = $ccEmails->merge($this->ticket->sector->emails);
+            }
+
+            $sectorUserEmails = $this->ticket->sector->users->pluck('email')->filter();
+            $ccEmails = $ccEmails->merge($sectorUserEmails);
         }
 
         $ccEmails = $ccEmails->unique()->diff($toEmails)->values();
@@ -158,6 +165,22 @@ class TicketDetail extends Component
         }
 
         $this->refreshLogs();
+    }
+
+    public function updatedNewLogAttachments(): void
+    {
+        $this->validate([
+            'newLogAttachments.*' => 'file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png,gif',
+        ]);
+
+        $this->logAttachments = array_merge($this->logAttachments, $this->newLogAttachments);
+        $this->newLogAttachments = [];
+    }
+
+    public function removeLogAttachment(int $index): void
+    {
+        unset($this->logAttachments[$index]);
+        $this->logAttachments = array_values($this->logAttachments);
     }
 
     public function updatedNewClosingAttachments(): void
@@ -271,10 +294,12 @@ class TicketDetail extends Component
     public function submitLog(): void
     {
         $this->validate([
-            'logNote' => 'required|string|min:5',
+            'logNote'           => 'required|string|min:5',
+            'logAttachments'    => 'array|max:5',
+            'logAttachments.*'  => 'file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png,gif',
         ]);
 
-        TicketLog::create([
+        $log = TicketLog::create([
             'ticket_id'   => $this->ticket->id,
             'user_id'     => Auth::id(),
             'type'        => 'manual',
@@ -282,7 +307,29 @@ class TicketDetail extends Component
             'description' => $this->logNote,
         ]);
 
-        $this->logNote = '';
+        foreach ($this->logAttachments as $attachment) {
+            $detectedMime = $this->verifyFileContent($attachment);
+            if (!$detectedMime) {
+                continue;
+            }
+
+            $extension      = $attachment->getClientOriginalExtension();
+            $randomFilename = bin2hex(random_bytes(16)) . '.' . $extension;
+            $path           = $attachment->storeAs('attachments/' . $this->ticket->id, $randomFilename, 'public');
+
+            TicketAttachment::create([
+                'ticket_id'         => $this->ticket->id,
+                'ticket_log_id'     => $log->id,
+                'filename'          => $randomFilename,
+                'original_filename' => $this->sanitizeFilename($attachment->getClientOriginalName()),
+                'path'              => $path,
+                'mime_type'         => $detectedMime,
+                'size'              => $attachment->getSize(),
+            ]);
+        }
+
+        $this->logNote        = '';
+        $this->logAttachments = [];
         $this->refreshLogs();
     }
 
@@ -299,7 +346,7 @@ class TicketDetail extends Component
 
     protected function refreshLogs(): void
     {
-        $this->ticket->load('logs.user');
+        $this->ticket->load('logs.user', 'logs.attachments');
     }
 
     private function verifyFileContent($file): ?string
