@@ -82,11 +82,12 @@
                     {!! $ticket->description !!}
                 </div>
 
-                @if($ticket->attachments->count() > 0)
+                @php $originalAttachments = $ticket->attachments->whereNull('ticket_log_id')->whereNull('ticket_reply_id') @endphp
+                @if($originalAttachments->count() > 0)
                     <flux:separator class="my-6" />
                     <flux:heading size="sm" class="mb-3">Attachments</flux:heading>
                     <div class="flex flex-wrap gap-2">
-                        @foreach($ticket->attachments as $attachment)
+                        @foreach($originalAttachments as $attachment)
                             <flux:button
                                 href="{{ $attachment->url }}"
                                 target="_blank"
@@ -151,7 +152,7 @@
                                     <flux:text size="sm" class="text-zinc-600 dark:text-zinc-400">
                                         {{ $log->description }}
                                     </flux:text>
-                                    @if($log->isManual() && $log->attachments->isNotEmpty())
+                                    @if($log->attachments->isNotEmpty())
                                         <div class="flex flex-wrap gap-2 mt-2">
                                             @foreach($log->attachments as $attachment)
                                                 <a href="{{ $attachment->url }}" target="_blank"
@@ -225,19 +226,25 @@
                 <div class="space-y-4">
                     <flux:field>
                         <flux:label>Status</flux:label>
-                        <div class="flex gap-2">
-                            <flux:select variant="listbox" wire:model="newStatus" class="flex-1">
-                                @if(auth()->user()->isAdmin())
-                                    <flux:select.option value="open">Open</flux:select.option>
-                                @endif
-                                <flux:select.option value="in_progress">In Progress</flux:select.option>
-                                <flux:select.option value="resolved">Resolved</flux:select.option>
-                                @if(auth()->user()->isAdmin())
-                                    <flux:select.option value="closed">Closed</flux:select.option>
-                                @endif
-                            </flux:select>
-                            <flux:button wire:click="updateStatus" size="sm">Update</flux:button>
-                        </div>
+                        @if(in_array($ticket->status, ['resolved', 'closed']))
+                            <flux:badge :color="$ticket->status_color">
+                                {{ ucfirst($ticket->status) }}
+                            </flux:badge>
+                        @else
+                            <div class="flex gap-2">
+                                <flux:select variant="listbox" wire:model="newStatus" class="flex-1">
+                                    @if(auth()->user()->isAdmin())
+                                        <flux:select.option value="open">Open</flux:select.option>
+                                    @endif
+                                    <flux:select.option value="in_progress">In Progress</flux:select.option>
+                                    <flux:select.option value="resolved">Resolved</flux:select.option>
+                                    @if(auth()->user()->isAdmin())
+                                        <flux:select.option value="closed">Closed</flux:select.option>
+                                    @endif
+                                </flux:select>
+                                <flux:button wire:click="updateStatus" size="sm">Update</flux:button>
+                            </div>
+                        @endif
                     </flux:field>
 
                     @if($ticket->closing_remark)
@@ -260,7 +267,7 @@
                                 <flux:button wire:click="updatePriority" size="sm">Update</flux:button>
                             </div>
                         @else
-                            <flux:badge :color="match($ticket->priority) { 'urgent' => 'red', 'high' => 'orange', 'medium' => 'yellow', 'low' => 'green', default => 'zinc' }" size="sm">
+                            <flux:badge :color="match($ticket->priority) { 'urgent' => 'red', 'high' => 'orange', 'medium' => 'yellow', 'low' => 'green', default => 'zinc' }">
                                 {{ ucfirst($ticket->priority) }}
                             </flux:badge>
                         @endif
@@ -434,19 +441,19 @@
         </div>
     </flux:modal>
 
-    <!-- Close Ticket Modal -->
+    <!-- Resolve Ticket Modal -->
     <flux:modal wire:model="showCloseModal" class="md:w-96 space-y-6">
         <div>
-            <flux:heading size="lg">Close Ticket</flux:heading>
-            <flux:text class="mt-1">Please provide a closing remark before closing this ticket.</flux:text>
+            <flux:heading size="lg">Resolve Ticket</flux:heading>
+            <flux:text class="mt-1">Please provide a resolution remark before resolving this ticket.</flux:text>
         </div>
 
         <form wire:submit="closeTicket" class="space-y-4">
             <flux:field>
-                <flux:label>Closing Remark <span class="text-red-500">*</span></flux:label>
+                <flux:label>Resolution Remark <span class="text-red-500">*</span></flux:label>
                 <flux:textarea
                     wire:model="closingRemark"
-                    placeholder="Enter your closing remark..."
+                    placeholder="Enter your resolution remark..."
                     rows="4"
                 />
                 <flux:error name="closingRemark" />

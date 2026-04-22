@@ -30,7 +30,7 @@ class TicketCreated extends Notification
             ->line("**Submitted:** {$this->ticket->created_at->format('d M Y, h:i A')}")
             ->line("---")
             ->line("**Your Message:**")
-            ->line($this->ticket->description)
+            ->line(strip_tags($this->ticket->description))
             ->line("---")
             ->line("Please save your ticket number for future reference. You can use it to check the status of your ticket.")
             ->action('Check Ticket Status', route('ticket.status', $this->ticket->ticket_number))

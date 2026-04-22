@@ -140,19 +140,14 @@ class TicketDetail extends Component
             return;
         }
 
-        if ($this->newStatus === 'closed') {
+        if ($this->newStatus === 'resolved') {
             $this->showCloseModal = true;
             return;
         }
 
         $oldStatus = $this->ticket->status;
-        $data = ['status' => $this->newStatus];
 
-        if ($this->newStatus === 'resolved') {
-            $data['resolved_at'] = now();
-        }
-
-        $this->ticket->update($data);
+        $this->ticket->update(['status' => $this->newStatus]);
         $this->ticket->refresh();
 
         if ($oldStatus !== $this->newStatus) {
@@ -201,22 +196,27 @@ class TicketDetail extends Component
 
     public function closeTicket(): void
     {
-        if (!Auth::user()->isAdmin()) {
-            return;
-        }
-
         $this->validate([
-            'closingRemark'      => 'required|string|min:5',
-            'closingAttachments' => 'array|max:5',
+            'closingRemark'        => 'required|string|min:5',
+            'closingAttachments'   => 'array|max:5',
             'closingAttachments.*' => 'file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png,gif',
         ]);
 
         $oldStatus = $this->ticket->status;
 
         $this->ticket->update([
-            'status'         => 'closed',
-            'closed_at'      => now(),
+            'status'         => 'resolved',
+            'resolved_at'    => now(),
             'closing_remark' => $this->closingRemark,
+        ]);
+
+        $by = Auth::user()->name;
+        $log = TicketLog::create([
+            'ticket_id'   => $this->ticket->id,
+            'user_id'     => Auth::id(),
+            'type'        => 'system',
+            'action'      => 'status_changed',
+            'description' => "Ticket resolved by {$by}. Remark: {$this->closingRemark}",
         ]);
 
         foreach ($this->closingAttachments as $attachment) {
@@ -231,6 +231,7 @@ class TicketDetail extends Component
 
             TicketAttachment::create([
                 'ticket_id'         => $this->ticket->id,
+                'ticket_log_id'     => $log->id,
                 'filename'          => $randomFilename,
                 'original_filename' => $this->sanitizeFilename($attachment->getClientOriginalName()),
                 'path'              => $path,
@@ -239,17 +240,14 @@ class TicketDetail extends Component
             ]);
         }
 
-        $by = Auth::user()->name;
-        $this->addSystemLog('closed', "Ticket closed by {$by}. Remark: {$this->closingRemark}");
-
         $this->ticket->refresh();
         $this->ticket->load('attachments');
-        $this->newStatus      = 'closed';
+        $this->newStatus      = 'resolved';
         $this->showCloseModal = false;
         $this->closingRemark  = '';
         $this->closingAttachments = [];
 
-        if ($oldStatus !== 'closed') {
+        if ($oldStatus !== 'resolved') {
             $this->sendStatusNotification();
         }
 

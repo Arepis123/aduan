@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\TicketStatusController;
 use App\Livewire\Staff\Dashboard;
 use App\Livewire\Staff\Settings;
 use App\Livewire\Staff\SubmitTicket as StaffSubmitTicket;
@@ -11,6 +12,9 @@ use App\Livewire\Admin\DepartmentManagement;
 use App\Livewire\Admin\SectorManagement;
 use App\Livewire\Admin\UserManagement;
 use Illuminate\Support\Facades\Route;
+
+// Public ticket status page (linked in email notifications)
+Route::get('/ticket/{ticketNumber}', [TicketStatusController::class, 'show'])->name('ticket.status');
 
 // Landing page - redirect to staff login
 Route::get('/', fn() => redirect()->route('staff.dashboard'))->name('home');

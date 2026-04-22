@@ -36,7 +36,7 @@ class TicketAssigned extends Notification
             ->line("**Phone:** " . ($this->ticket->requester_phone ?? 'N/A'))
             ->line("---")
             ->line("**Description:**")
-            ->line($this->ticket->description)
+            ->line(strip_tags($this->ticket->description))
             ->line("---")
             ->line("Please resolve this ticket within 7 days from assignment.")
             ->action('View Ticket', route('staff.tickets.show', $this->ticket))
