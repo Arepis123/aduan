@@ -27,7 +27,7 @@ class TicketClosed extends Notification
             ->line("**Ticket Number:** {$this->ticket->ticket_number}")
             ->line("**Subject:** {$this->ticket->subject}")
             ->line("**Status:** Closed")
-            ->line("**Closed On:** {$this->ticket->closed_at->format('d M Y, h:i A')}")
+            ->line("**Closed On:** " . ($this->ticket->closed_at?->format('d M Y, h:i A') ?? now()->format('d M Y, h:i A')))
             ->line("---")
             ->line("If you need further assistance, please don't hesitate to submit a new ticket.")
             ->action('Submit New Ticket', route('submit'))

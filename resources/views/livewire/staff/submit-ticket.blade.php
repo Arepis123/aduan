@@ -24,7 +24,7 @@
         </flux:card>
     @else
         <!-- Ticket Form -->
-        <flux:card>
+        <flux:card class="dark:bg-zinc-900 rounded-lg">
             <flux:heading size="xl" class="mb-2">Submit Ticket</flux:heading>
             <flux:subheading class="mb-8">Log a complaint or enquiry received via email or WhatsApp.</flux:subheading>
 
@@ -56,7 +56,19 @@
 
                         <flux:field>
                             <flux:label>Company / Organisation</flux:label>
-                            <flux:input wire:model="complainant_company" placeholder="Company or organisation name" />
+                            <flux:select wire:model="complainant_company" variant="combobox" :filter="false" placeholder="Type to search...">
+                                <x-slot name="input">
+                                    <flux:select.input wire:model.live.debounce.300ms="contractorSearch" placeholder="Type at least 2 characters..." />
+                                </x-slot>
+                                @foreach($this->contractors as $contractor)
+                                    <flux:select.option :value="$contractor->ctr_comp_name">
+                                        {{ $contractor->ctr_comp_name }}
+                                    </flux:select.option>
+                                @endforeach
+                                @if(strlen(trim($contractorSearch)) >= 2 && $this->contractors->isEmpty())
+                                    <div class="px-3 py-2 text-sm text-zinc-400">No contractors found.</div>
+                                @endif
+                            </flux:select>
                             <flux:error name="complainant_company" />
                         </flux:field>
                     </div>
@@ -72,7 +84,6 @@
                         <flux:field>
                             <flux:label>Category</flux:label>
                             <flux:select variant="listbox" wire:model="category_id" placeholder="Select a category">
-                                <flux:select.option value="">-- No Category --</flux:select.option>
                                 @foreach($categories as $category)
                                     <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
                                 @endforeach
@@ -98,15 +109,26 @@
                             <flux:error name="description" />
                         </flux:field>
 
-                        <flux:field>
-                            <flux:label>Priority</flux:label>
-                            <flux:select variant="listbox" wire:model="priority">
-                                <flux:select.option value="low">Low - General enquiry</flux:select.option>
-                                <flux:select.option value="medium">Medium - Standard issue</flux:select.option>
-                                <flux:select.option value="high">High - Urgent matter</flux:select.option>
-                                <flux:select.option value="urgent">Urgent - Critical issue</flux:select.option>
-                            </flux:select>
-                        </flux:field>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <flux:field>
+                                <flux:label>Priority</flux:label>
+                                <flux:select variant="listbox" wire:model="priority">
+                                    <flux:select.option value="low">Low - General enquiry</flux:select.option>
+                                    <flux:select.option value="medium">Medium - Standard issue</flux:select.option>
+                                    <flux:select.option value="high">High - Urgent matter</flux:select.option>
+                                    <flux:select.option value="urgent">Urgent - Critical issue</flux:select.option>
+                                </flux:select>
+                            </flux:field>
+
+                            <flux:field>
+                                <flux:label>Complaint Receiving Platform</flux:label>
+                                <flux:select variant="listbox" wire:model="receiving_platform" placeholder="Select platform">
+                                    <flux:select.option value="whatsapp">WhatsApp</flux:select.option>
+                                    <flux:select.option value="email">Email</flux:select.option>
+                                    <flux:select.option value="letter">Letter</flux:select.option>
+                                </flux:select>
+                            </flux:field>
+                        </div>
                     </div>
                 </flux:fieldset>
 

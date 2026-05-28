@@ -34,33 +34,31 @@ class Dashboard extends Component
             'total'       => (clone $ticketQuery)->count(),
             'open'        => (clone $ticketQuery)->where('status', 'open')->count(),
             'in_progress' => (clone $ticketQuery)->where('status', 'in_progress')->count(),
-            'pending'     => (clone $ticketQuery)->where('status', 'pending')->count(),
             'resolved'    => (clone $ticketQuery)->where('status', 'resolved')->count(),
             'my_assigned' => Ticket::whereHas('assignees', fn($q) => $q->where('users.id', $user->id))
-                ->whereIn('status', ['open', 'in_progress', 'pending'])->count(),
+                ->whereIn('status', ['open', 'in_progress'])->count(),
             'unassigned'  => $isAdmin
-                ? Ticket::doesntHave('assignees')->whereIn('status', ['open', 'in_progress', 'pending'])->count()
-                : Ticket::doesntHave('assignees')->where('department_id', $user->department_id)->whereIn('status', ['open', 'in_progress', 'pending'])->count(),
+                ? Ticket::doesntHave('assignees')->whereIn('status', ['open', 'in_progress'])->count()
+                : Ticket::doesntHave('assignees')->where('department_id', $user->department_id)->whereIn('status', ['open', 'in_progress'])->count(),
         ];
 
         $slaTickets = (clone $ticketQuery)
-            ->whereIn('status', ['open', 'in_progress', 'pending'])
+            ->whereIn('status', ['open', 'in_progress'])
             ->whereNotNull('assigned_at')
-            ->with(['department', 'assignedAgent'])
+            ->with(['department', 'assignees'])
             ->orderBy('assigned_at', 'asc')
             ->get();
 
         // Chart 1: Tickets by Status (Doughnut)
         $statusChart = [
-            'labels' => ['Open', 'In Progress', 'Pending', 'Resolved', 'Closed'],
+            'labels' => ['Open', 'In Progress', 'Resolved', 'Closed'],
             'data'   => [
                 $stats['open'],
                 $stats['in_progress'],
-                $stats['pending'],
-                (clone $ticketQuery)->where('status', 'resolved')->count(),
+                $stats['resolved'],
                 (clone $ticketQuery)->where('status', 'closed')->count(),
             ],
-            'colors' => ['#3b82f6', '#eab308', '#f97316', '#22c55e', '#71717a'],
+            'colors' => ['#3b82f6', '#eab308', '#22c55e', '#71717a'],
         ];
 
         // Chart 2: Tickets by Department (Horizontal Bar) — admin sees all, staff sees their dept

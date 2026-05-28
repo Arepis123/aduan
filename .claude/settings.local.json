@@ -32,7 +32,10 @@
       "Bash(php -v:*)",
       "Bash(xargs grep:*)",
       "Bash(xargs ls:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(mysql *)",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\xampp\\\\htdocs\\\\aduan\\\\cron\")",
+      "Bash(Out-Null)"
     ]
   }
 }

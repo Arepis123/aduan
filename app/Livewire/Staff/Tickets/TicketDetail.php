@@ -136,6 +136,19 @@ class TicketDetail extends Component
 
     public function updateStatus(): void
     {
+        // Nobody can change a closed ticket
+        if ($this->ticket->status === 'closed') {
+            return;
+        }
+
+        // On a resolved ticket, only admin can act — and only to close it
+        if ($this->ticket->status === 'resolved') {
+            if (!Auth::user()->isAdmin() || $this->newStatus !== 'closed') {
+                return;
+            }
+        }
+
+        // Non-admins cannot set closed directly
         if ($this->newStatus === 'closed' && !Auth::user()->isAdmin()) {
             return;
         }
@@ -147,18 +160,46 @@ class TicketDetail extends Component
 
         $oldStatus = $this->ticket->status;
 
-        $this->ticket->update(['status' => $this->newStatus]);
+        $this->ticket->update([
+            'status'    => $this->newStatus,
+            'closed_at' => $this->newStatus === 'closed' ? now() : $this->ticket->closed_at,
+        ]);
         $this->ticket->refresh();
 
         if ($oldStatus !== $this->newStatus) {
             $oldLabel = ucfirst(str_replace('_', ' ', $oldStatus));
             $newLabel = ucfirst(str_replace('_', ' ', $this->newStatus));
-            $by = Auth::user()->name;
+            $by       = Auth::user()->name;
 
             $this->addSystemLog('status_changed', "Status changed from {$oldLabel} to {$newLabel} by {$by}.");
             $this->sendStatusNotification();
         }
 
+        $this->refreshLogs();
+    }
+
+    public function adminCloseTicket(): void
+    {
+        if (!Auth::user()->isAdmin()) {
+            return;
+        }
+
+        if ($this->ticket->status !== 'resolved') {
+            return;
+        }
+
+        $this->ticket->update([
+            'status'    => 'closed',
+            'closed_at' => now(),
+        ]);
+
+        $this->ticket->refresh();
+
+        $by = Auth::user()->name;
+        $this->addSystemLog('closed', "Ticket closed by {$by}.");
+        $this->sendStatusNotification();
+
+        $this->newStatus = 'closed';
         $this->refreshLogs();
     }
 

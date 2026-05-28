@@ -1,7 +1,6 @@
 <div class="space-y-6">
     <!-- Header -->
     <div class="flex items-center gap-4">
-        <flux:button href="{{ route('staff.tickets.index') }}" variant="ghost" icon="arrow-left" wire:navigate />
         <div class="flex-1">
             <div class="flex items-center gap-3">
                 <flux:heading size="xl">{{ $ticket->ticket_number }}</flux:heading>
@@ -13,6 +12,7 @@
             </div>
             <flux:text size="sm">{{ $ticket->requester_name }} &lt;{{ $ticket->requester_email }}&gt;</flux:text>
         </div>
+        <flux:button href="{{ route('staff.tickets.index') }}" variant="filled" icon="arrow-left" wire:navigate>Back</flux:button>
     </div>
 
     <!-- Deadline Warning -->
@@ -63,6 +63,10 @@
                     <div>
                         <flux:text size="sm" class="text-zinc-500">Phone</flux:text>
                         <flux:text class="font-medium">{{ $ticket->requester_phone ?? 'N/A' }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:text size="sm" class="text-zinc-500">Company / Organisation</flux:text>
+                        <flux:text class="font-medium">{{ $ticket->complainant_company ?? 'N/A' }}</flux:text>
                     </div>
                     <div>
                         <flux:text size="sm" class="text-zinc-500">Type</flux:text>
@@ -226,11 +230,17 @@
                 <div class="space-y-4">
                     <flux:field>
                         <flux:label>Status</flux:label>
-                        @if(in_array($ticket->status, ['resolved', 'closed']))
-                            <flux:badge :color="$ticket->status_color">
-                                {{ ucfirst($ticket->status) }}
-                            </flux:badge>
+
+                        @if($ticket->status === 'closed')
+                            {{-- Closed: locked for everyone --}}
+                            <flux:badge :color="$ticket->status_color">Closed</flux:badge>
+
+                        @elseif($ticket->status === 'resolved' && !auth()->user()->isAdmin())
+                            {{-- Resolved: PIC cannot change --}}
+                            <flux:badge :color="$ticket->status_color">Resolved</flux:badge>
+
                         @else
+                            {{-- Admin (any status) or PIC (open/in_progress/pending) --}}
                             <div class="flex gap-2">
                                 <flux:select variant="listbox" wire:model="newStatus" class="flex-1">
                                     @if(auth()->user()->isAdmin())
@@ -246,13 +256,6 @@
                             </div>
                         @endif
                     </flux:field>
-
-                    @if($ticket->closing_remark)
-                        <div class="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-                            <flux:text size="sm" class="text-zinc-500 mb-1">Closing Remark</flux:text>
-                            <flux:text class="font-medium">{{ $ticket->closing_remark }}</flux:text>
-                        </div>
-                    @endif
 
                     <flux:field>
                         <flux:label>Priority</flux:label>
@@ -376,6 +379,10 @@
                     <div>
                         <flux:text size="sm" class="text-zinc-500">Category</flux:text>
                         <flux:text class="font-medium">{{ $ticket->category?->name ?? 'N/A' }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:text size="sm" class="text-zinc-500">Receiving Platform</flux:text>
+                        <flux:text class="font-medium">{{ $ticket->receiving_platform ? ucfirst($ticket->receiving_platform) : 'N/A' }}</flux:text>
                     </div>
                     <flux:separator />
                     <div>

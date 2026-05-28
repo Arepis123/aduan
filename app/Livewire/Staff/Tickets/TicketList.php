@@ -40,7 +40,7 @@ class TicketList extends Component
         $this->resetPage();
     }
 
-    public function sortBy($column): void
+    public function sortColumn(string $column): void
     {
         if ($this->sortBy === $column) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
@@ -48,6 +48,7 @@ class TicketList extends Component
             $this->sortBy = $column;
             $this->sortDirection = 'asc';
         }
+        $this->resetPage();
     }
 
     public function clearFilters(): void
@@ -96,7 +97,30 @@ class TicketList extends Component
             $query->where('department_id', $this->department_id);
         }
 
-        $tickets = $query->orderBy($this->sortBy, $this->sortDirection)->paginate(20);
+        if ($this->sortBy === 'days_to_resolve') {
+            // Push NULL rows to the bottom regardless of sort direction
+            $query->orderByRaw("
+                CASE
+                    WHEN assigned_at IS NOT NULL AND resolved_at IS NOT NULL
+                        THEN DATEDIFF(resolved_at, assigned_at)
+                    WHEN assigned_at IS NOT NULL
+                        THEN DATEDIFF(NOW(), assigned_at)
+                    ELSE NULL
+                END IS NULL ASC
+            ")->orderByRaw("
+                CASE
+                    WHEN assigned_at IS NOT NULL AND resolved_at IS NOT NULL
+                        THEN DATEDIFF(resolved_at, assigned_at)
+                    WHEN assigned_at IS NOT NULL
+                        THEN DATEDIFF(NOW(), assigned_at)
+                    ELSE NULL
+                END " . $this->sortDirection
+            );
+        } else {
+            $query->orderBy($this->sortBy, $this->sortDirection);
+        }
+
+        $tickets = $query->paginate(20);
 
         return view('livewire.staff.tickets.ticket-list', [
             'tickets' => $tickets,

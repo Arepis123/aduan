@@ -3,9 +3,11 @@
 namespace App\Livewire\Staff;
 
 use App\Models\Category;
+use App\Models\Contractor;
 use App\Models\Ticket;
 use App\Models\TicketAttachment;
 use App\Models\TicketLog;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
@@ -31,6 +33,8 @@ class SubmitTicket extends Component
     #[Validate('nullable|string|max:255')]
     public string $complainant_company = '';
 
+    public string $contractorSearch = '';
+
     // Ticket details
     #[Validate('nullable|exists:categories,id')]
     public ?int $category_id = null;
@@ -43,6 +47,9 @@ class SubmitTicket extends Component
 
     #[Validate('required|in:low,medium,high,urgent')]
     public string $priority = 'medium';
+
+    #[Validate('nullable|in:whatsapp,email,letter')]
+    public ?string $receiving_platform = null;
 
     #[Validate([
         'attachments' => 'array|max:5',
@@ -79,6 +86,7 @@ class SubmitTicket extends Component
             'subject'              => $this->subject,
             'description'          => $this->description,
             'priority'             => $this->priority,
+            'receiving_platform'   => $this->receiving_platform ?: null,
             'status'               => 'open',
         ]);
 
@@ -172,6 +180,25 @@ class SubmitTicket extends Component
         }
 
         return $filename;
+    }
+
+    #[Computed]
+    public function contractors(): \Illuminate\Support\Collection
+    {
+        if (strlen(trim($this->contractorSearch)) < 2) {
+            return collect();
+        }
+
+        try {
+            return Contractor::select('ctr_clab_no', 'ctr_comp_name')
+                ->where('ctr_appstatus', '3')
+                ->where('ctr_comp_name', 'like', '%' . trim($this->contractorSearch) . '%')
+                ->orderBy('ctr_comp_name')
+                ->limit(20)
+                ->get();
+        } catch (\Exception) {
+            return collect();
+        }
     }
 
     public function render()

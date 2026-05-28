@@ -63,6 +63,22 @@ return [
             ]) : [],
         ],
 
+        // Second connection — external SKIM database (newclabskim)
+        'skim' => [
+            'driver'      => 'mysql',
+            'host'        => env('SKIM_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port'        => env('SKIM_DB_PORT', env('DB_PORT', '3306')),
+            'database'    => env('SKIM_DB_DATABASE', 'newclabskim'),
+            'username'    => env('SKIM_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password'    => env('SKIM_DB_PASSWORD', env('DB_PASSWORD', '')),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset'     => 'utf8mb4',
+            'collation'   => 'utf8mb4_unicode_ci',
+            'prefix'      => '',
+            'strict'      => true,
+            'engine'      => null,
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

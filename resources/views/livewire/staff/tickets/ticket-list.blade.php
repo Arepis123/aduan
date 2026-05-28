@@ -50,17 +50,21 @@
     <flux:card class="p-4 sm:p-6 dark:bg-zinc-900 rounded-lg">
         <flux:table>
             <flux:table.columns>
-                <flux:table.column sortable :sorted="$sortBy === 'ticket_number'" :direction="$sortDirection" wire:click="sortBy('ticket_number')">
+                <flux:table.column sortable :sorted="$sortBy === 'ticket_number'" :direction="$sortDirection" wire:click="sortColumn('ticket_number')">
                     Ticket #
                 </flux:table.column>
                 <flux:table.column>Subject</flux:table.column>
                 <flux:table.column>Requester</flux:table.column>
+                <flux:table.column>Company</flux:table.column>
                 <flux:table.column>Department</flux:table.column>
                 <flux:table.column>Status</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'priority'" :direction="$sortDirection" wire:click="sortBy('priority')">
+                <flux:table.column sortable :sorted="$sortBy === 'priority'" :direction="$sortDirection" wire:click="sortColumn('priority')">
                     Priority
                 </flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sortBy('created_at')">
+                <flux:table.column sortable :sorted="$sortBy === 'days_to_resolve'" :direction="$sortDirection" wire:click="sortColumn('days_to_resolve')">
+                    Days to Resolve
+                </flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sortColumn('created_at')">
                     Created
                 </flux:table.column>
             </flux:table.columns>
@@ -71,17 +75,20 @@
                         <flux:table.cell class="font-medium text-indigo-600 dark:text-indigo-400">
                             {{ $ticket->ticket_number }}
                         </flux:table.cell>
-                        <flux:table.cell class="max-w-xs truncate">
+                        <flux:table.cell class="uppercase truncate max-w-[8rem] sm:max-w-[10rem] lg:max-w-[12rem]">
                             {{ $ticket->subject }}
                         </flux:table.cell>
                         <flux:table.cell>
                             <div>
                                 <flux:text size="sm" class="font-medium">{{ $ticket->requester_name }}</flux:text>
-                                <flux:text size="xs">{{ $ticket->requester_email }}</flux:text>
+                                <flux:text size="xs" class="text-zinc-400">{{ $ticket->requester_email }}</flux:text>
                             </div>
                         </flux:table.cell>
-                        <flux:table.cell>
-                            {{ $ticket->department?->name ?? '-' }}
+                        <flux:table.cell class="uppercase truncate max-w-[8rem] sm:max-w-[10rem] lg:max-w-[12rem]">
+                            {{ $ticket->complainant_company ?? '-' }}
+                        </flux:table.cell>
+                        <flux:table.cell class="uppercase truncate max-w-[8rem] sm:max-w-[10rem] lg:max-w-[12rem]">
+                            {{$ticket->department?->name ?? '-' }}
                         </flux:table.cell>
                         <flux:table.cell>
                             <flux:badge
@@ -112,12 +119,27 @@
                             </flux:badge>
                         </flux:table.cell>
                         <flux:table.cell>
+                            @if($ticket->assigned_at && $ticket->resolved_at)
+                                @php $days = (int) $ticket->assigned_at->diffInDays($ticket->resolved_at) @endphp
+                                <flux:badge size="sm" color="{{ $days <= 7 ? 'green' : ($days <= 14 ? 'yellow' : 'red') }}">
+                                    {{ $days }} {{ $days === 1 ? 'Day' : 'Days' }}
+                                </flux:badge>
+                            @elseif($ticket->assigned_at && in_array($ticket->status, ['open', 'in_progress', 'pending']))
+                                @php $days = (int) $ticket->assigned_at->diffInDays(now()) @endphp
+                                <flux:badge size="sm" color="{{ $days <= 7 ? 'green' : ($days <= 14 ? 'yellow' : 'red') }}">
+                                    {{ $days }} {{ $days === 1 ? 'Day' : 'Days' }}
+                                </flux:badge>
+                            @else
+                                <flux:text size="sm" class="text-zinc-400">-</flux:text>
+                            @endif
+                        </flux:table.cell>
+                        <flux:table.cell>
                             {{ $ticket->created_at->format('M d, Y') }}
                         </flux:table.cell>
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="7" class="text-center py-8">
+                        <flux:table.cell colspan="9" class="text-center py-8">
                             <flux:text>No tickets found.</flux:text>
                         </flux:table.cell>
                     </flux:table.row>

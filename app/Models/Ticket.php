@@ -26,19 +26,24 @@ class Ticket extends Model
         'subject',
         'description',
         'priority',
+        'receiving_platform',
         'status',
         'assigned_at',
         'resolved_at',
         'closed_at',
         'closing_remark',
+        'overdue_notified_at',
+        'inprogress_notified_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'assigned_at' => 'datetime',
-            'resolved_at' => 'datetime',
-            'closed_at' => 'datetime',
+            'assigned_at'         => 'datetime',
+            'resolved_at'         => 'datetime',
+            'closed_at'           => 'datetime',
+            'overdue_notified_at'     => 'datetime',
+            'inprogress_notified_at'  => 'datetime',
         ];
     }
 

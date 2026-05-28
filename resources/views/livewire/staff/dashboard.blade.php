@@ -62,7 +62,11 @@
                                 {{ $ticket->subject }}
                             </flux:table.cell>
                             <flux:table.cell>
-                                {{ $ticket->assignedAgent?->name ?? 'Unassigned' }}
+                                @if($ticket->assignees->isNotEmpty())
+                                    {{ $ticket->assignees->pluck('name')->join(', ') }}
+                                @else
+                                    <span class="text-zinc-400">Unassigned</span>
+                                @endif
                             </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge size="sm" :color="$ticket->status_color">
@@ -82,7 +86,7 @@
                     @empty
                         <flux:table.row>
                             <flux:table.cell colspan="5" class="text-center py-8">
-                                <flux:text>No active SLA tickets.</flux:text>
+                                <flux:text>No active tickets.</flux:text>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforelse
