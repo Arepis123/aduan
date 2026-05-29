@@ -75,8 +75,10 @@
                         <flux:table.cell class="font-medium text-indigo-600 dark:text-indigo-400">
                             {{ $ticket->ticket_number }}
                         </flux:table.cell>
-                        <flux:table.cell class="uppercase truncate max-w-[8rem] sm:max-w-[10rem] lg:max-w-[12rem]">
-                            {{ $ticket->subject }}
+                        <flux:table.cell class="uppercase max-w-[8rem] sm:max-w-[10rem] lg:max-w-[12rem]">
+                            <flux:tooltip :content="$ticket->subject">
+                                <span class="block truncate">{{ $ticket->subject }}</span>
+                            </flux:tooltip>
                         </flux:table.cell>
                         <flux:table.cell>
                             <div>
@@ -84,11 +86,15 @@
                                 <flux:text size="xs" class="text-zinc-400">{{ $ticket->requester_email }}</flux:text>
                             </div>
                         </flux:table.cell>
-                        <flux:table.cell class="uppercase truncate max-w-[8rem] sm:max-w-[10rem] lg:max-w-[12rem]">
-                            {{ $ticket->complainant_company ?? '-' }}
+                        <flux:table.cell class="uppercase max-w-[8rem] sm:max-w-[10rem] lg:max-w-[12rem]">
+                            <flux:tooltip :content="$ticket->complainant_company ?? '-'">
+                                <span class="block truncate">{{ $ticket->complainant_company ?? '-' }}</span>
+                            </flux:tooltip>
                         </flux:table.cell>
-                        <flux:table.cell class="uppercase truncate max-w-[8rem] sm:max-w-[10rem] lg:max-w-[12rem]">
-                            {{$ticket->department?->name ?? '-' }}
+                        <flux:table.cell class="uppercase max-w-[8rem] sm:max-w-[10rem] lg:max-w-[12rem]">
+                            <flux:tooltip :content="$ticket->department?->name ?? '-'">
+                                <span class="block truncate">{{ $ticket->department?->name ?? '-' }}</span>
+                            </flux:tooltip>
                         </flux:table.cell>
                         <flux:table.cell>
                             <flux:badge
