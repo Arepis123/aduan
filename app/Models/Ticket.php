@@ -198,10 +198,10 @@ class Ticket extends Model
     public function getStatusColorAttribute(): string
     {
         return match($this->status) {
-            'open' => 'blue',
+            'open' => 'zinc',
             'in_progress' => 'yellow',
             'resolved' => 'green',
-            'closed' => 'zinc',
+            'closed' => 'blue',
             default => 'zinc',
         };
     }

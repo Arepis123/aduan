@@ -30,7 +30,7 @@ class TicketClosed extends Notification
             ->line("**Closed On:** " . ($this->ticket->closed_at?->format('d M Y, h:i A') ?? now()->format('d M Y, h:i A')))
             ->line("---")
             ->line("If you need further assistance, please don't hesitate to submit a new ticket.")
-            ->action('Submit New Ticket', route('submit'))
+            ->action('Submit New Ticket', route('staff.submit'))
             ->line("Thank you for using our service.")
             ->salutation("Best regards,\n" . config('app.name'));
     }

@@ -58,7 +58,7 @@ class Dashboard extends Component
                 $stats['resolved'],
                 (clone $ticketQuery)->where('status', 'closed')->count(),
             ],
-            'colors' => ['#3b82f6', '#eab308', '#22c55e', '#71717a'],
+            'colors' => ['#71717a', '#eab308', '#22c55e', '#3b82f6'],
         ];
 
         // Chart 2: Tickets by Department (Horizontal Bar) — admin sees all, staff sees their dept

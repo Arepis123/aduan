@@ -100,10 +100,10 @@
                             <flux:badge
                                 size="sm"
                                 :color="match($ticket->status) {
-                                    'open' => 'blue',
+                                    'open' => 'zinc',
                                     'in_progress' => 'yellow',
                                     'resolved' => 'green',
-                                    'closed' => 'zinc',
+                                    'closed' => 'blue',
                                     default => 'zinc'
                                 }"
                             >
