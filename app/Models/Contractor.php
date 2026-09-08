@@ -24,14 +24,14 @@ class Contractor extends Model
     ];
 
     /**
-     * Fetch approved contractors ordered by company name.
+     * Fetch approved & verified contractors ordered by company name.
      * Returns empty collection if the SKIM database is unreachable (e.g. local dev).
      */
     public static function allSafe(): \Illuminate\Support\Collection
     {
         try {
             return self::select('ctr_clab_no', 'ctr_comp_name')
-                ->where('ctr_appstatus', '3')
+                ->where('ctr_appstatus', ['3','2'])
                 ->orderBy('ctr_comp_name')
                 ->get();
         } catch (\Exception) {
