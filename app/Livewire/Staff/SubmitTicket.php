@@ -7,6 +7,7 @@ use App\Models\Contractor;
 use App\Models\Ticket;
 use App\Models\TicketAttachment;
 use App\Models\TicketLog;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -191,12 +192,17 @@ class SubmitTicket extends Component
 
         try {
             return Contractor::select('ctr_clab_no', 'ctr_comp_name')
-                ->where('ctr_appstatus', '3')
+                ->whereIn('ctr_appstatus', ['3', '2'])
                 ->where('ctr_comp_name', 'like', '%' . trim($this->contractorSearch) . '%')
                 ->orderBy('ctr_comp_name')
                 ->limit(20)
                 ->get();
-        } catch (\Exception) {
+        } catch (\Exception $e) {
+            Log::warning('Contractor lookup failed on SKIM connection.', [
+                'search'  => trim($this->contractorSearch),
+                'message' => $e->getMessage(),
+            ]);
+
             return collect();
         }
     }
